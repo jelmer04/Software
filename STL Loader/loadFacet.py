@@ -2,6 +2,7 @@
 Created by Jon Elmer on 01-07-2014
 """
 
+from tkinter import *       # GUI
 
 def load_STL_ASCII (fileName, sliceDepth):
     """Load a facet from an STL file"""
@@ -40,8 +41,7 @@ def load_STL_ASCII (fileName, sliceDepth):
                     print(val, "is not a float")
                
             #Find the coords
-            coords = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-            point = ()
+            coords = []
             line = file.readline().rstrip().lstrip()
 
             if  line == "outer loop":
@@ -51,13 +51,15 @@ def load_STL_ASCII (fileName, sliceDepth):
 
                     if line.startswith("vertex "):
                         line = line.lstrip("vertex ")
-                        for j, val in enumerate(line.split()):
+                        point = ()
+                        for val in line.split():
                             try:
-                                coords[i][j] = float(val)
+                                point = point + (float(val),)
                                 #print(float(val), "is float number ", j)
                     
                             except ValueError:
                                 print(val, "is not a float")
+                        coords.append(point)
 
                     else:
                         print("File is bad - expected vertex")
@@ -84,7 +86,7 @@ def load_STL_ASCII (fileName, sliceDepth):
 
                 try:
                     list(facetPoints)
-                    pointsList.append(facetPoints)
+                    pointsList.extend(facetPoints)
                 except TypeError:
                     print("No points")
 
@@ -94,12 +96,18 @@ def load_STL_ASCII (fileName, sliceDepth):
             else:
                 print("File is bad - expected outer loop")
                 return 1
+            
         elif line == "endsolid":
             # end of file - stop here
             file.close()
-            pointsSet = list(set(pointsList))
-            print("Set of points:", pointsSet)
-            return 0
+            try:
+                pointsSet = list(set(pointsList))
+                print("Set of points:", pointsSet)
+                return pointsSet
+            
+            except:
+                print("List of points:", pointsList)
+                return pointsList
             
         else:
             print("File is bad - expected facet normal")
@@ -154,15 +162,14 @@ def slice_facet(facetPoints, facetNormal, sliceDepth):
             coords.append(find_intersection(linePoints, sliceDepth))
             
         elif sum(touch) == 1:
-            coords.append([facetPoints[i][0], facetPoints[i][1]])
-            coords.append(coords[0][:])
+            coords.append(tuple(facetPoints[i][0:2]))
+            coords.append(coords[0])
             # weve already done this point as only one intersection!
 
         elif sum(touch) == 2:
             coords = facetPoints[:]
             coords.pop(touch.index(0))
-            coords[0] = coords[0][0:2]
-            coords[1] = coords[1][0:2]
+            coords = [tuple(coords[0][0:2]), tuple(coords[1][0:2])]
             
         elif sum(above) == 2 or sum(below) == 2:
             if sum(above) == 2:
@@ -211,12 +218,12 @@ def find_intersection(linePoints, sliceDepth):
     I = [x-y for x,y in zip(X,I)]
 
     if I[2] != sliceDepth:
-        print("Intersection not on slice plane!", I)
-        return 1
+        print("Intersection not on slice plane! - But it might be close...", I)
+        #return 1
 
     print("Intersection at", I, "\n")
     
-    return I[0:2]
+    return tuple(I[0:2])
 # End of function find_intersection
 
 
@@ -224,12 +231,32 @@ def dot(a, b):
     return sum(i*j for (i,j) in zip(a,b))
 
 
+def plot(pointsList, scale = 10, margin = 5):
+    
+    root = Tk()
+    root.title("Plot of points")
+
+    try:
+        canvas = Canvas(root, width=500, height=500, bg = "white")
+        canvas.pack()
+
+        for point in pointsList:
+            x = (point[0] * scale) + margin
+            y = (point[1] * scale) + margin
+            canvas.create_oval(x-1,y-1,x+1,y+1,width=1, fill="black")
+ 
+    except:
+        print ("An error has occured!")
+
+    root.mainloop()
+    
+
 def main():
 
     #print(find_intersection([[0,0,0],[2,2,2]],1))
 
     
-    print ("Function returned", load_STL_ASCII("2cm Cube ASCII.STL", 0))
+    plot(load_STL_ASCII("2cm Cube ASCII.STL", 10))
  
     
 main()
