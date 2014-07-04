@@ -243,7 +243,6 @@ def find_intersection(linePoints, sliceDepth):
     W = [x-y for x,y in zip(X, [0, 0, sliceDepth])]
 
     k = (dot(W,N))/(dot(V,N))
-    print(k)
 
     I = [x*k for x in V]
     I = [x-y for x,y in zip(X,I)]
@@ -258,6 +257,37 @@ def find_intersection(linePoints, sliceDepth):
 # End of function find_intersection
 
 
+def order_points(points):
+    sortedPoints = []
+    # Find vectors from first point to all others
+    vectors = []
+    startPoint = points[0]
+    for point in points:
+        vector = ((point[0] - startPoint[0]), (point[1] - startPoint[1]))
+        vectors.append(vector)
+    # Start from the first point
+    vector = vectors.pop(0)
+    sortedPoints.append(points.pop(0))
+    i = 1
+    while 0 < len(vectors):
+        distances = [find_length((v[0]-vector[0], v[1]-vector[1])) for v in vectors]
+        closestIndex = distances.index(min(distances))
+        closestPoint = points[closestIndex]
+        print("\nDistance from", vector, "\n\tto", vectors, "\n\tis", distances, "\nClosest point:",closestPoint)
+        sortedPoints.append(points.pop(closestIndex))
+        vector = vectors.pop(closestIndex)
+                
+    print("\n\n In order:",sortedPoints)
+    
+    return sortedPoints
+    
+# End of function order_points
+
+def find_length(vector):
+    """ Find length of a vector """
+    return ((vector[0]) ** 2 + (vector[1]) ** 2) ** 0.5
+
+
 def dot(a, b):
     return sum(i*j for (i,j) in zip(a,b))
 
@@ -270,10 +300,17 @@ def plot(pointsList, scale = 10, margin = 5):
         canvas = Canvas(root, width=500, height=500, bg = "white")
         canvas.pack()
 
-        for point in pointsList:
-            x = (point[0] * scale) + margin
-            y = (point[1] * scale) + margin
-            canvas.create_oval(x-1,y-1,x+1,y+1,width=1, fill="black")
+        scaled = [((point[0] * scale) + margin, (point[1] * scale) + margin) for point in pointsList]
+            
+        lines = scaled[:]
+        while 1 < len(lines):
+           canvas.create_line(lines[0][0], lines[0][1], lines[1][0], lines[1][1],width=1, fill = 'red')
+           lines.pop(0)
+
+        for point in scaled:
+            x = point[0]
+            y = point[1]
+            canvas.create_oval(x-2,y-2,x+2,y+2,width=1, fill="black")
  
     except:
         print ("An error has occured!")
@@ -289,12 +326,13 @@ def main():
     for facet in facetPoints:
         print("---------------")
         try:
-            pointsSet.extend(slice_facet(facet, 10))
+            pointsSet.extend(slice_facet(facet, 15))
         except:
             pass
     pointsSet = list(set(pointsSet))
-    print(pointsSet)
-    plot(pointsSet)
+    print("Points at:", pointsSet)
+    sortedPoints = order_points(pointsSet)
+    plot(sortedPoints)
     
 main()
     
