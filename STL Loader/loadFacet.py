@@ -5,7 +5,10 @@ Created by Jon Elmer on 01-07-2014
 from tkinter import *  # GUI
 import struct  # Byte manipulation
 import os  # File size
+import logging
 
+
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.WARNING)
 
 def load_STL(fileName):
     """Load the STL file, either ASCII or Binary - detected automatically"""
@@ -21,20 +24,20 @@ def load_STL(fileName):
     # Get the number of bytes in the file
     fileSize = os.path.getsize(fileName)
     # Print the file size comparison
-    print("File should contain", facetCount, "facets")
-    print("File should be  ", estimateSize, "bytes")
-    print("File is actually", fileSize, "bytes")
+    logging.info("File should contain   %d facets", facetCount)
+    logging.info("File size should be   %d bytes", estimateSize)
+    logging.info("File size is actually %d bytes", fileSize,)
     file.close()
     # Check the size of the file is as expected for the number of facets
     if fileSize == estimateSize:
         # Its a binary file
-        print("Binary file!")
+        print("Opening", fileName, "in binary mode...")
         file = open(fileName, "br")
         facetList = load_STL_Binary(file)
         file.close()
     else:
         # Its an ASCII file
-        print("ASCII file!")
+        print("Opening", fileName, "in ASCII mode...")
         file = open(fileName, "r")
         facetList = load_STL_ASCII(file)
         file.close()
@@ -50,7 +53,7 @@ def load_STL_ASCII(file):
     # Read the first line and check if it says solid
     line = file.readlines(1)[0]
     if not line.startswith("solid"):
-        print("File is bad - expected solid")
+        logging.warning("File is bad - expected solid")
         return 1
     # Loop through the entire file, loading in facets
     for line in file:
@@ -65,7 +68,7 @@ def load_STL_ASCII(file):
                 try:
                     normal[i] = float(val)
                 except ValueError:
-                    print(val, "is not a float")
+                    logging.debug("%s is not a float", val)
                     return 1
 
             # Find the coords:
@@ -81,80 +84,78 @@ def load_STL_ASCII(file):
                             try:
                                 point = point + (float(val),)
                             except ValueError:
-                                print(val, "is not a float")
+                                logging.debug("%s is not a float", val)
                         coords.append(point)
                     else:
-                        print("File is bad - expected vertex")
+                        logging.warning("File is bad - expected vertex")
                         return 1
 
                 # Check if the closing lines of each facet are correct
                 line = file.readline().rstrip().lstrip()
                 if line != "endloop":
-                    print("File is bad - expected endloop")
+                    logging.warning("File is bad - expected endloop")
                     return 1
 
                 line = file.readline().rstrip().lstrip()
                 if line != "endfacet":
-                    print("File is bad - expected endfacet")
+                    logging.warning("File is bad - expected endfacet")
                     return 1
 
                 # if we are still in the loop, we have the facet data so process here
 
-                print("Facet loaded with normal", normal, "\n\tand coords", coords)
+                logging.debug("Facet loaded with normal %s\tand coords %s", str(normal), str(coords))
                 facetList.append(coords)
 
             else:
-                print("File is bad - expected outer loop")
+                logging.warning("File is bad - expected outer loop")
                 return 1
 
         elif line == "endsolid":
-            # end of file - stop here ------------------------------------------------------
+            # end of file - stop here
             return facetList
         else:
-            print("File is bad - expected facet normal")
+            logging.warning("File is bad - expected facet normal")
             return 1
-    print("Dropped out of the loop - something went wrong!")
+    logging.warning("Dropped out of the loop - something went wrong!")
     return 1
-
-
 # End of function load_STL_ASCII
+
 
 def load_STL_Binary(file):
     """Load a facet from an STL file"""
+
     # List of points which make up each facet
     facetList = []
     # Read the 80 byte ASCII header
-    header = struct.unpack('80s', file.read(80))[0].decode('utf-8').rstrip()
-    print("File Header:", header)
+    header = struct.unpack("80s", file.read(80))[0].decode("utf-8").rstrip()
+    logging.debug("File Header: %s", header)
     # Number of facets to find
-    facetCount = struct.unpack('<I', file.read(4))[0]
+    facetCount = struct.unpack("<I", file.read(4))[0]
 
     # Loop through the entire file, loading in facets
     for x in range(facetCount):
         # Find the normal:
         normal = [0, 0, 0]
         for i in range(3):
-            normal[i] = struct.unpack('<f', file.read(4))[0]
+            normal[i] = struct.unpack("<f", file.read(4))[0]
 
         # Find the coords:
         coords = [0, 0, 0]
         for i in range(3):
             point = ()
             for j in range(3):
-                point = point + (struct.unpack('<f', file.read(4))[0],)
+                point = point + (struct.unpack("<f", file.read(4))[0],)
             coords[i] = point
 
         # Read the attribute byte count
-        attribute = struct.unpack('<H', file.read(2))[0]
+        attribute = struct.unpack("<H", file.read(2))[0]
         if attribute != 0:
-            print("File bad - attribute not zero")
+            logging.warning("File bad - attribute not zero")
             return 1
         # Got the coordinates
-        print("Facet loaded with normal", normal, "\n\tand coords", coords)
+        logging.debug("Facet loaded with normal %s\n\tand coords %s", str(normal), str(coords))
         facetList.append(coords)
     return facetList
-
-
 # End of function load_STL_Binary
 
 
@@ -169,39 +170,37 @@ def slice_facet(facetPoints, sliceDepth):
     for i, point in enumerate(facetPoints):
         if point[2] == sliceDepth:
             touch[i] = 1
-            # print("Point", i, "intersects slice")
         elif point[2] > sliceDepth:
             above[i] = 1
-            # print ("Point", i, "is above slice")
         elif point[2] < sliceDepth:
             below[i] = 1
-            # print ("Point", i, "is below slice")
-    print("Above:", sum(above), "\tTouching:", sum(touch), "\tBelow:", sum(below))
+    logging.debug("Above: %d\tTouching: %d\tBelow: %d", sum(above), sum(touch), sum(below))
 
     # Find intersections
     coords = []
 
     if (sum(above) == 3) or (sum(below) == 3):  # points are all above or all below
-        print("Facet does not intersect plane")
+        logging.debug("Facet does not intersect plane")
         return 0
     else:
-        print("Facet intersects plane")
+        logging.debug("Facet intersects plane")
         if sum(touch) == 3:  # MODE 5
             # all on the plane - ignore it as all points will be duplicated elsewhere
             pass
             return 0
 
-        elif sum(touch) == 1 and sum(above) == 1 and sum(below) == 1:  # MODE 2
-            # need to find one intersection
-            linePoints = facetPoints[:]
-            linePoints.pop(touch.index(1))  # remove the touching point from the list
+        elif sum(touch) == 1:
+            if sum(above) == 1 and sum(below) == 1:
+                # need to find one intersection
+                linePoints = facetPoints[:]
+                linePoints.pop(touch.index(1))  # remove the touching point from the list
 
-            coords.append(find_intersection(linePoints, sliceDepth))
+                coords.append(find_intersection(linePoints, sliceDepth))
 
-        elif sum(touch) == 1 and sum(above + below) == 0:  # MODE ??
-            coords.append(tuple(facetPoints[i][0:2]))
-            coords.append(coords[0])
-            # already done this point as only one intersection!
+            elif sum(above + below) == 0:
+                coords.append(tuple(facetPoints[i][0:2]))
+                coords.append(coords[0])
+                # already done this point as only one intersection!
 
         elif sum(touch) == 2:
             coords = facetPoints[:]
@@ -227,20 +226,20 @@ def slice_facet(facetPoints, sliceDepth):
 
             coords.append(find_intersection(linePoints, sliceDepth))
 
+    logging.debug("Facet intersects at %s", str(coords))
     return coords
 # End of function slice_facet
 
 
-
 def find_intersection(linePoints, sliceDepth):
     """Take a pair of points and find their intersection with the slice"""
-    print("The points to interpolate:", linePoints)
+    logging.debug("The points to interpolate: %s", str(linePoints))
     X = linePoints[0][:]
     N = [0, 0, 1]  # normal to z plane
     V = [0, 0, 0]
     for i in range(3):
         V[i] = linePoints[0][i] - linePoints[1][i]
-    print("V =", V)
+    logging.debug("V = %s", str(V))
 
     W = [x - y for x, y in zip(X, [0, 0, sliceDepth])]
 
@@ -250,18 +249,16 @@ def find_intersection(linePoints, sliceDepth):
     I = [x - y for x, y in zip(X, I)]
 
     if I[2] != sliceDepth:
-        print("Intersection not on slice plane! - But it might be close...", I)
+        logging.debug("Intersection not on slice plane! %s", str(I))
         # return 1
 
-    print("Intersection at", I, "\n")
+    logging.debug("Intersection at %s", str(I))
 
     return tuple(I[0:2])
-
-
 # End of function find_intersection
 
 
-def order_points(points):
+def order_points_by_distance(points):
     sortedPoints = []
     # Find vectors from first point to all others
     vectors = []
@@ -277,16 +274,46 @@ def order_points(points):
         distances = [find_length((v[0] - vector[0], v[1] - vector[1])) for v in vectors]
         closestIndex = distances.index(min(distances))
         closestPoint = points[closestIndex]
-        print("\nDistance from", vector, "\n\tto", vectors, "\n\tis", distances, "\nClosest point:", closestPoint)
+        logging.debug("Distance from %s\tto %s\tis %s\tClosest point: %s", str(vector), str(vectors), str(distances), str(closestPoint))
         sortedPoints.append(points.pop(closestIndex))
         vector = vectors.pop(closestIndex)
 
-    print("\n\n In order:", sortedPoints)
+    logging.debug("In order: %s", str(sortedPoints))
 
     return sortedPoints
+# End of function order_points_by_distance
 
 
-# End of function order_points
+def order_points_in_pairs(points, rounding=12):
+    roundedPoints = [(round(n[0], rounding), round(n[1], rounding)) for n in points]
+    sortedPoints = []
+    sortedPoints.append(points.pop(0))
+    nextPoint = points.pop(0)
+    roundedPoints.pop(0)
+    nextRound = roundedPoints.pop(0)
+    while 1 < len(points):
+        logging.debug("At: %s \tGoing to: %s", str(sortedPoints[len(sortedPoints)-1]), str(nextRound))
+        sortedPoints.append(nextPoint)
+        nextIndex = roundedPoints.index(nextRound)
+        if (nextIndex % 2) == 1:
+            # on an odd index - must be the element before next
+            points.pop(nextIndex)
+            nextPoint = points.pop(nextIndex - 1)
+
+            roundedPoints.pop(nextIndex)
+            nextRound = roundedPoints.pop(nextIndex - 1)
+        else:
+            # on an even index - must be the following element next
+            points.pop(nextIndex)
+            nextPoint = points.pop(nextIndex)
+
+            roundedPoints.pop(nextIndex)
+            nextRound = roundedPoints.pop(nextIndex)
+
+    logging.debug("In order: %s", str(sortedPoints))
+    return sortedPoints
+# End of function order_points_in_pairs
+
 
 def find_length(vector):
     """ Find length of a vector """
@@ -297,12 +324,12 @@ def dot(a, b):
     return sum(i * j for (i, j) in zip(a, b))
 
 
-def plot(pointsList, scale=10, margin=5):
+def plot(pointsList, scale=45, margin=5, rad = 1.5):
     root = Tk()
     root.title("Plot of points")
 
     try:
-        canvas = Canvas(root, width=500, height=500, bg="white")
+        canvas = Canvas(root, width=1000, height=1000, bg="white")
         canvas.pack()
 
         scaled = [((point[0] * scale) + margin, (point[1] * scale) + margin) for point in pointsList]
@@ -315,29 +342,29 @@ def plot(pointsList, scale=10, margin=5):
         for point in scaled:
             x = point[0]
             y = point[1]
-            canvas.create_oval(x - 2, y - 2, x + 2, y + 2, width=1, fill="black")
+            canvas.create_oval(x - rad, y - rad, x + rad, y + rad, width=1, fill="black")
 
     except:
-        print("An error has occured!")
+        print("An error has occurred!")
 
     root.mainloop()
-
-
 # End of function plot
 
 
 def main():
-    facetPoints = load_STL("2cm Coarse Ball Binary.STL")
+    facetPoints = load_STL("2cm Ball Binary.STL")
+
     pointsSet = []
     for facet in facetPoints:
-        print("---------------")
         try:
             pointsSet.extend(slice_facet(facet, 15))
         except:
             pass
-    pointsSet = list(set(pointsSet))
-    print("Points at:", pointsSet)
-    sortedPoints = order_points(pointsSet)
+    print("All points:    \t",pointsSet)
+    #pointsSet = list(set(pointsSet))
+    #print("Unique points: \t", pointsSet)
+    sortedPoints = order_points_in_pairs(pointsSet)
+    print("Ordered points:\t", sortedPoints)
     plot(sortedPoints)
 
 
