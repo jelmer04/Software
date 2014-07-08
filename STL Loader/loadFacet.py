@@ -229,6 +229,7 @@ def slice_facet(facetPoints, sliceDepth):
             coords.append(find_intersection(linePoints, sliceDepth))
 
     logging.debug("Facet intersects at %s", str(coords))
+
     return coords
 # End of function slice_facet
 
@@ -294,76 +295,76 @@ def flatten(l):
 def next_point_by_distance(startPoint, points):
     # Find vectors from first point to all others
     vectors = []
-    for point in points:
-        vector = ((point[0] - startPoint[0]), (point[1] - startPoint[1]))
-        vectors.append(vector)
+    #print(points)
+    for p in points:
+        #print(p)
+        vectors.append(tuple((p[0] - startPoint[0], p[1] - startPoint[1])))
     # Start from the first point
 
-    distances = [find_length((v[0] - startPoint[0], v[1] - startPoint[1])) for v in vectors]
+    distances = [find_length(v) for v in vectors]
     closestIndex = distances.index(min(distances))
     closestPoint = points[closestIndex]
-    logging.debug("Distance from %s\tto %s\tis %s\tClosest point: %s", str(vector), str(vectors), str(distances), str(closestPoint))
-    return closestPoint
+    logging.debug("Distance from %s\tto %s\tis %s\tClosest point: %s", str(startPoint), str(vectors), str(distances), str(closestPoint))
+    return closestIndex
 # End of function next_point_by_distance
 
 
 def order_points_in_pairs(points):
 
-    #maxValue = 0
+    '''maxValue = 0
     # Find a suitable rounding value
-    #for (a, b) in points:
-    #    maxValue = max(a, b, maxValue)
-    #precision = int(math.log10(2 ** (23-(math.log2(maxValue)))))
-    #print("Max:", maxValue, "Precision:", precision)
-    #rounding = precision - 1
+    for (a, b) in points:
+        maxValue = max(a[0], a[1], b[0], b[1], maxValue)
+
+    exponent = int(float.hex(maxValue).split("p")[1])
+    precision = int(math.log10(2 ** (23 - exponent)))
+    logging.debug("Max:", maxValue, "Exponent:", exponent, "Precision:", precision)
+    rounding = precision - 1
+    logging.debug("Rounding to:", rounding)'''
 
     sortedPoints = []
-    rounding = 5
+    rounding = 10
 
     # Round the points for better searching
     roundedPoints = []
-    for p in points:
-        roundedPoints.append([((round(n[0], rounding), round(n[1], rounding)) for n in p)])
-
-    #points = roundedPoints[:]
-    #sortedPoints = [(0, 0)]
-    #sortedPoints.append(points.pop(0))
-    #nextPoint = points.pop(0)
-    #roundedPoints.pop(0)
-    #nextRound = roundedPoints.pop(0)
+    for (a, b) in points:
+        #print("P=", a, "\t", b)
+        roundedPoints.append([(round(a[0], rounding), round(a[1], rounding)), (round(b[0], rounding), round(b[1], rounding))])
 
     # Start from origin
     nextPoint = (0, 0)
     nextRound = (0, 0)
+
     while 1 < len(points):
-
-
+        logging.debug("At: $s", str(nextPoint))
         try:
-            nextIndex = roundedPoints.index(nextRound)
-        except:
-            nextIndex = roundedPoints.index(next_point_by_distance(nextRound, roundedPoints))
-            print("Next point not found:", nextPoint, "\tNext closest:", points[nextIndex], "\tAt:", nextIndex)
+            nextIndex = flatten(roundedPoints).index(nextRound)
+        except ValueError:
+            logging.debug("Couldn't find %s", str(nextRound))
+            nextIndex = next_point_by_distance(nextRound, flatten(roundedPoints))
+        pairOffset = nextIndex % 2
+        nextIndex = int((nextIndex - pairOffset) / 2)
+        logging.debug("Next index: %d \t Pair offset: %d", nextIndex,  pairOffset)
+        logging.debug("Next closest: %s", str(points[nextIndex][pairOffset]))
 
-        sortedPoints.append(points.pop(nextIndex))
+        line = points.pop(nextIndex)
+        roundLine = roundedPoints.pop(nextIndex)
 
-        if (nextIndex % 2) == 1:
+        sortedPoints.append(line[pairOffset])
+
+        if pairOffset:
             # on an odd index - must be the element before next
-            #points.pop(nextIndex)
-            nextPoint = points.pop(nextIndex - 1)
-
-            roundedPoints.pop(nextIndex)
-            nextRound = roundedPoints.pop(nextIndex - 1)
+            nextPoint = line[0]
+            nextRound = roundLine[0]
         else:
             # on an even index - must be the following element next
-            #points.pop(nextIndex)
-            nextPoint = points.pop(nextIndex)
+            nextPoint = line[1]
+            nextRound = roundLine[1]
 
-            roundedPoints.pop(nextIndex)
-            nextRound = roundedPoints.pop(nextIndex)
 
-        print("At:", str(sortedPoints[len(sortedPoints)-1]), "\tGoing to:", str(nextPoint))
+        logging.debug("At: %s \tGoing to: %s", str(sortedPoints[len(sortedPoints)-1]), str(nextPoint))
 
-    logging.debug("In order: %s", str(sortedPoints))
+    logging.info("In order: %s", str(sortedPoints))
     return sortedPoints
 # End of function order_points_in_pairs
 
@@ -374,10 +375,11 @@ def find_length(vector):
 
 
 def dot(a, b):
+    """ Find dot product of vectors """
     return sum(i * j for (i, j) in zip(a, b))
 
 
-def plot(pointsList, scale=40, margin=5, rad = 1.5):
+def plot(pointsList, scale=40, margin=5):
     root = Tk()
     root.title("Plot of points")
 
@@ -389,13 +391,23 @@ def plot(pointsList, scale=40, margin=5, rad = 1.5):
 
         lines = scaled[:]
         while 1 < len(lines):
-            canvas.create_line(lines[0][0], lines[0][1], lines[1][0], lines[1][1], width=1, fill='red')
+            canvas.create_line(lines[0][0], lines[0][1], lines[1][0], lines[1][1], width=1, fill="red")
             lines.pop(0)
 
-        for point in scaled:
+        for i, point in enumerate(scaled):
             x = point[0]
             y = point[1]
-            canvas.create_oval(x - rad, y - rad, x + rad, y + rad, width=1, fill="black")
+
+            rad = 3
+            if i == 0:
+                fill = "green"
+            elif i == len(scaled)-1:
+                fill = "blue"
+            else:
+                fill = ""
+                rad = 3
+
+            canvas.create_oval(x - rad, y - rad, x + rad, y + rad, width=1, fill=fill, outline="black")
 
     except:
         print("An error has occurred!")
@@ -405,23 +417,25 @@ def plot(pointsList, scale=40, margin=5, rad = 1.5):
 
 
 def main():
-    facetPoints = load_STL("2cm Ball Binary.STL")
+    facetPoints = load_STL("2cm Donut 2 Binary.STL")
 
     pointsSet = []
     for facet in facetPoints:
         try:
             slice = slice_facet(facet, 2.5)
-            if slice != 0:
+            if slice != 0 and slice != []:
                 pointsSet.append(slice)
+                #print("Got slice", slice)
         except:
             print("Could not slice facet!!")
+
     print("All points:    \t", pointsSet)
     #pointsSet = list(set(pointsSet))
     #print("Unique points: \t", pointsSet)
     flatPoints = flatten(pointsSet)
     print("Flat Points:", flatPoints)
     #sortedPoints = order_points_by_distance(flatPoints)
-    sortedPoints = order_points_in_pairs(flatten(pointsSet))
+    sortedPoints = order_points_in_pairs(pointsSet)
     print("Ordered points:\t", sortedPoints)
     plot(sortedPoints)
 
