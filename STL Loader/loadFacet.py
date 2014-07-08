@@ -6,6 +6,8 @@ from tkinter import *  # GUI
 import struct  # Byte manipulation
 import os  # File size
 import logging
+import collections
+import math
 
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.WARNING)
@@ -260,16 +262,16 @@ def find_intersection(linePoints, sliceDepth):
 
 def order_points_by_distance(points):
     sortedPoints = []
+
     # Find vectors from first point to all others
     vectors = []
-    startPoint = points[0]
+    startPoint = (0, 0)
     for point in points:
         vector = ((point[0] - startPoint[0]), (point[1] - startPoint[1]))
         vectors.append(vector)
-    # Start from the first point
-    vector = vectors.pop(0)
-    sortedPoints.append(points.pop(0))
-    i = 1
+
+    vector = (0, 0)
+
     while 0 < len(vectors):
         distances = [find_length((v[0] - vector[0], v[1] - vector[1])) for v in vectors]
         closestIndex = distances.index(min(distances))
@@ -284,31 +286,82 @@ def order_points_by_distance(points):
 # End of function order_points_by_distance
 
 
-def order_points_in_pairs(points, rounding=12):
-    roundedPoints = [(round(n[0], rounding), round(n[1], rounding)) for n in points]
+def flatten(l):
+    return [item for sublist in l for item in sublist]
+
+
+
+def next_point_by_distance(startPoint, points):
+    # Find vectors from first point to all others
+    vectors = []
+    for point in points:
+        vector = ((point[0] - startPoint[0]), (point[1] - startPoint[1]))
+        vectors.append(vector)
+    # Start from the first point
+
+    distances = [find_length((v[0] - startPoint[0], v[1] - startPoint[1])) for v in vectors]
+    closestIndex = distances.index(min(distances))
+    closestPoint = points[closestIndex]
+    logging.debug("Distance from %s\tto %s\tis %s\tClosest point: %s", str(vector), str(vectors), str(distances), str(closestPoint))
+    return closestPoint
+# End of function next_point_by_distance
+
+
+def order_points_in_pairs(points):
+
+    #maxValue = 0
+    # Find a suitable rounding value
+    #for (a, b) in points:
+    #    maxValue = max(a, b, maxValue)
+    #precision = int(math.log10(2 ** (23-(math.log2(maxValue)))))
+    #print("Max:", maxValue, "Precision:", precision)
+    #rounding = precision - 1
+
     sortedPoints = []
-    sortedPoints.append(points.pop(0))
-    nextPoint = points.pop(0)
-    roundedPoints.pop(0)
-    nextRound = roundedPoints.pop(0)
+    rounding = 5
+
+    # Round the points for better searching
+    roundedPoints = []
+    for p in points:
+        roundedPoints.append([((round(n[0], rounding), round(n[1], rounding)) for n in p)])
+
+    #points = roundedPoints[:]
+    #sortedPoints = [(0, 0)]
+    #sortedPoints.append(points.pop(0))
+    #nextPoint = points.pop(0)
+    #roundedPoints.pop(0)
+    #nextRound = roundedPoints.pop(0)
+
+    # Start from origin
+    nextPoint = (0, 0)
+    nextRound = (0, 0)
     while 1 < len(points):
-        logging.debug("At: %s \tGoing to: %s", str(sortedPoints[len(sortedPoints)-1]), str(nextRound))
-        sortedPoints.append(nextPoint)
-        nextIndex = roundedPoints.index(nextRound)
+
+
+        try:
+            nextIndex = roundedPoints.index(nextRound)
+        except:
+            nextIndex = roundedPoints.index(next_point_by_distance(nextRound, roundedPoints))
+            print("Next point not found:", nextPoint, "\tNext closest:", points[nextIndex], "\tAt:", nextIndex)
+
+        sortedPoints.append(points.pop(nextIndex))
+
         if (nextIndex % 2) == 1:
             # on an odd index - must be the element before next
-            points.pop(nextIndex)
+            #points.pop(nextIndex)
             nextPoint = points.pop(nextIndex - 1)
 
             roundedPoints.pop(nextIndex)
             nextRound = roundedPoints.pop(nextIndex - 1)
         else:
             # on an even index - must be the following element next
-            points.pop(nextIndex)
+            #points.pop(nextIndex)
             nextPoint = points.pop(nextIndex)
 
             roundedPoints.pop(nextIndex)
             nextRound = roundedPoints.pop(nextIndex)
+
+        print("At:", str(sortedPoints[len(sortedPoints)-1]), "\tGoing to:", str(nextPoint))
 
     logging.debug("In order: %s", str(sortedPoints))
     return sortedPoints
@@ -324,7 +377,7 @@ def dot(a, b):
     return sum(i * j for (i, j) in zip(a, b))
 
 
-def plot(pointsList, scale=45, margin=5, rad = 1.5):
+def plot(pointsList, scale=40, margin=5, rad = 1.5):
     root = Tk()
     root.title("Plot of points")
 
@@ -332,7 +385,7 @@ def plot(pointsList, scale=45, margin=5, rad = 1.5):
         canvas = Canvas(root, width=1000, height=1000, bg="white")
         canvas.pack()
 
-        scaled = [((point[0] * scale) + margin, (point[1] * scale) + margin) for point in pointsList]
+        scaled = [((point[0] * scale) + margin, 1000 - (point[1] * scale) - margin) for point in pointsList]
 
         lines = scaled[:]
         while 1 < len(lines):
@@ -357,13 +410,18 @@ def main():
     pointsSet = []
     for facet in facetPoints:
         try:
-            pointsSet.extend(slice_facet(facet, 15))
+            slice = slice_facet(facet, 2.5)
+            if slice != 0:
+                pointsSet.append(slice)
         except:
-            pass
-    print("All points:    \t",pointsSet)
+            print("Could not slice facet!!")
+    print("All points:    \t", pointsSet)
     #pointsSet = list(set(pointsSet))
     #print("Unique points: \t", pointsSet)
-    sortedPoints = order_points_in_pairs(pointsSet)
+    flatPoints = flatten(pointsSet)
+    print("Flat Points:", flatPoints)
+    #sortedPoints = order_points_by_distance(flatPoints)
+    sortedPoints = order_points_in_pairs(flatten(pointsSet))
     print("Ordered points:\t", sortedPoints)
     plot(sortedPoints)
 
