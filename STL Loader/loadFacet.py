@@ -198,8 +198,10 @@ def slice_facet(facetPoints, sliceDepth):
                 mode = 2
                 # need to find one intersection
                 linePoints = facetPoints[:]
-                coords.append(linePoints.pop(touch.index(1)[0:2]))  # remove the touching point from the list
-                coords.append(find_intersection(linePoints, sliceDepth))
+                touching = linePoints.pop(touch.index(1))[0:2]
+                coords.append(touching)  # remove the touching point from the list
+                coords.append(find_slice_intersection(linePoints, sliceDepth))
+                pass
 
             elif sum(above) == 0 or sum(below) == 0:    # MODE 3
                 mode = 3
@@ -223,7 +225,7 @@ def slice_facet(facetPoints, sliceDepth):
             linePoints = facetPoints[:]
             linePoints.pop(pair.index(1))
 
-            coords.append(find_intersection(linePoints, sliceDepth))
+            coords.append(find_slice_intersection(linePoints, sliceDepth))
 
             linePoints = facetPoints[:]
             linePoints.reverse()
@@ -231,7 +233,7 @@ def slice_facet(facetPoints, sliceDepth):
             pairReversed.reverse()
             linePoints.pop(pairReversed.index(1))
 
-            coords.append(find_intersection(linePoints, sliceDepth))
+            coords.append(find_slice_intersection(linePoints, sliceDepth))
 
     logging.debug("Facet intersects at %s", str(coords))
 
@@ -242,7 +244,7 @@ def slice_facet(facetPoints, sliceDepth):
 # End of function slice_facet
 
 
-def find_intersection(linePoints, sliceDepth):
+def find_slice_intersection(linePoints, sliceDepth):
     """Take a pair of points and find their intersection with the slice"""
     logging.debug("The points to interpolate: %s", str(linePoints))
     X = linePoints[0][:]
@@ -352,14 +354,14 @@ def order_points_in_pairs(points):
         try:
             nextIndex = flatten(roundedPoints).index(nextRound)
         except ValueError:
-            print("Couldn't find %s"%str(nextRound))
+            #print("Couldn't find %s"%str(nextRound))
             nextIndex = next_point_by_distance(nextRound, flatten(roundedPoints))
         pairOffset = nextIndex % 2
         nextIndex = int((nextIndex - pairOffset) / 2)
 
-        print("Next index: %d \t Pair offset: %d"%(nextIndex,  pairOffset))
-        print("Length: ", len(points), "\t Point:", points[nextIndex])
-        print("Next closest: %s"%str(points[nextIndex][pairOffset]))
+        #print("Next index: %d \t Pair offset: %d"%(nextIndex,  pairOffset))
+        #print("Length: ", len(points), "\t Point:", points[nextIndex])
+        #print("Next closest: %s"%str(points[nextIndex][pairOffset]))
 
         line = points.pop(nextIndex)
         roundLine = roundedPoints.pop(nextIndex)
@@ -393,81 +395,180 @@ def dot(a, b):
     return sum(i * j for (i, j) in zip(a, b))
 
 
-def plot(pointsList, scale=40, margin=5):
-    root = Tk()
-    root.title("Plot of points")
+def plot(canvas, pointsList, rad = 4, scale=40, margin=10):
+    print("Plotting: ", pointsList)
 
     try:
-        canvas = Canvas(root, width=1000, height=1000, bg="white")
-        canvas.pack()
-
         scaled = [((point[0] * scale) + margin, 1000 - (point[1] * scale) - margin) for point in pointsList]
 
-        lines = scaled[:]
-        while 1 < len(lines):
-            canvas.create_line(lines[0][0], lines[0][1], lines[1][0], lines[1][1], width=1, fill="red")
-            lines.pop(0)
+
 
         for i, point in enumerate(scaled):
             x = point[0]
             y = point[1]
 
-            rad = 3
             if i == 0:
                 fill = "green"
+                outline = "green"
             elif i == len(scaled)-1:
-                fill = "blue"
+                fill = ""
+                outline = "red"
             else:
                 fill = ""
-                rad = 3
+                outline = "gray"
 
-            canvas.create_oval(x - rad, y - rad, x + rad, y + rad, width=1, fill=fill, outline="black")
+            canvas.create_oval(x - rad, y - rad, x + rad, y + rad, width=1, fill=fill, outline=outline)
+
+        lines = scaled[:]
+        while 1 < len(lines):
+            canvas.create_line(lines[0][0], lines[0][1], lines[1][0], lines[1][1], width=1, fill="black")
+            lines.pop(0)
 
     except:
         print("An error has occurred!")
-
-    root.mainloop()
 # End of function plot
 
 
 def remove_duplicates(listA):
-    listB = []
-    while 2 < len(listA):
-        b = listA.pop()
-        for i, a in enumerate(listA):
-            if a == b:
-                listA.pop(i)
-                print("a:", a)
-        listB.append(b)
-        print("B:", listB)
-    return listB[:]
-# Doesnt work properly!!
+    for a in listA:
+        while 1:
+            try:
+                listA.pop(listA.index(a))
+                #print("a:", a)
+            except ValueError:
+                break
+        #print(len(listA), "values in", "A:", listA)
+    return listA[:]
+# Might not work??
+
+
+def perimeter_offset(points, offset):
+    newPoints = []
+    lastPoint = points.pop(0)
+
+    # Find the sign to use - is the offset nearer than the start?
+    point = points[0]
+    vector = sub(point, lastPoint)
+    normal = (vector[1], - vector[0])
+    length = find_length(normal)
+    print("Normal:", length, "Length:", find_length(lastPoint))
+    normal = (n/length for n in normal)     # Unit vector
+    offsetVector = tuple(offset * n for n in normal)
+    print(find_length(sub(lastPoint, offsetVector)))
+    if find_length(sub(lastPoint, offsetVector)) > find_length(lastPoint):
+        sign = 1
+    else:
+        sign = -1
+
+    print("sign is", sign)
+
+    points.append(points[0])
+
+    while len(points) > 1:
+        point = points[0]
+        vector = sub(point, lastPoint)
+        normal = (sign * vector[1], - sign * vector[0])
+        length = find_length(normal)
+        if length != 0:
+
+            normal = (n/length for n in normal)     # Unit vector
+
+            offsetVector = tuple(offset * n for n in normal)
+            newPoints.append([sub(lastPoint, offsetVector), sub(point, offsetVector)])
+        else:
+            pass
+            #print(lastPoint, point)
+
+        lastPoint = points.pop(0)
+
+    print("Offset to:", newPoints)
+    return newPoints
+
+
+def perimeter_trim(points):
+    newPoints = []
+
+    #print("Trimming: ", points)
+
+    lastLine = points[-1]
+    points.append(points[0])
+
+    while len(points) > 1:
+        thisLine = points.pop(0)
+        intersection = find_line_intersection(lastLine[0], sub(lastLine[1], lastLine[0]), thisLine[0], sub(thisLine[1], thisLine[0]))
+
+        #print("Last line:", lastLine, "\t This line:", thisLine, "\t Intersection:", intersection)
+
+        newPoints.append(intersection)
+        lastLine = points.pop(0)
+
+    newPoints.append(newPoints[0])
+
+    return newPoints
+
+
+def sub(A, B):
+    return (A[0] - B[0]), (A[1] - B[1])
+
+
+def find_line_intersection(posA, dirA, posB, dirB):
+
+    #print(posA, dirA, posB, dirB)
+
+    if (dirA[1] == 0 and dirB[1] == 0) or ((dirA[1] != 0 and dirB[1] != 0) and (dirA[0]/dirA[1] == dirB[0]/dirB[1])) or (posA == posB):
+        return posB
+
+    R = ((posA[0] * dirB[1]) - (posA[1] * dirB[0]) + (posB[1] * dirB[0]) - (posB[0] * dirB[1])) / ((dirA[1] * dirB[0]) - (dirA[0] * dirB[1]))
+
+    I = tuple(R * v for v in dirA)
+    I = (I[0] + posA[0], I[1] + posA[1])
+
+    return I
 
 
 def main():
-    facetPoints = load_STL("2cm Donut Binary.STL")
+    depth = 9
+    offset = 5
 
+    facetPoints = load_STL("2cm Ball Binary.STL")
 
     pointsSet = []
+    print("Loaded", len(facetPoints), "facets")
     for facet in facetPoints:
         try:
-            slice = slice_facet(facet, 5)
+            slice = slice_facet(facet, depth)
             if slice != 0 and slice != []:
                 pointsSet.append(slice)
-                #print("Got slice", slice)
+                #print("Got slice", slice, "\t from", facet)
         except:
-            print("Could not slice facet!!")
+            print("Could not slice facet!!", facet)
+            return
 
     print("All points:    \t", pointsSet)
     #pointsSet = remove_duplicates(pointsSet)
     print("Unique points: \t", pointsSet)
     #pointsSet = list(set(pointsSet))
     #print("Unique points: \t", pointsSet)
+    sortedPoints = remove_duplicates(pointsSet)
     flatPoints = flatten(pointsSet)
     #sortedPoints = order_points_by_distance(flatPoints)
-    sortedPoints = order_points_in_pairs((pointsSet))
+    sortedPoints = order_points_in_pairs(pointsSet)
     print("Ordered points:\t", sortedPoints)
-    plot(sortedPoints)
+
+    sortedPoints.append(sortedPoints[0])
+
+    root = Tk()
+    root.title("Plot of points")
+
+    canvas = Canvas(root, width=1000, height=1000, bg="white")
+    canvas.pack()
+
+    plot(canvas, sortedPoints, 2)
+    #plot(canvas, flatten(perimeter_offset(sortedPoints[:], offset)),10)
+    plot(canvas, perimeter_trim(perimeter_offset(sortedPoints[:], offset)))
+
+    root.mainloop()
+
 
 
 main()
