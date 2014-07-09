@@ -10,7 +10,7 @@ import collections
 import math
 
 
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.WARNING)
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 def load_STL(fileName):
     """Load the STL file, either ASCII or Binary - detected automatically"""
@@ -180,6 +180,7 @@ def slice_facet(facetPoints, sliceDepth):
 
     # Find intersections
     coords = []
+    mode = 0
 
     if (sum(above) == 3) or (sum(below) == 3):  # points are all above or all below
         logging.debug("Facet does not intersect plane")
@@ -187,29 +188,33 @@ def slice_facet(facetPoints, sliceDepth):
     else:
         logging.debug("Facet intersects plane")
         if sum(touch) == 3:  # MODE 5
+            mode = 5
             # all on the plane - ignore it as all points will be duplicated elsewhere
             pass
             return 0
 
         elif sum(touch) == 1:
-            if sum(above) == 1 and sum(below) == 1:
+            if sum(above) == 1 and sum(below) == 1:     # MODE 2
+                mode = 2
                 # need to find one intersection
                 linePoints = facetPoints[:]
-                linePoints.pop(touch.index(1))  # remove the touching point from the list
-
+                coords.append(linePoints.pop(touch.index(1)[0:2]))  # remove the touching point from the list
                 coords.append(find_intersection(linePoints, sliceDepth))
 
-            elif sum(above + below) == 0:
+            elif sum(above) == 0 or sum(below) == 0:    # MODE 3
+                mode = 3
                 coords.append(tuple(facetPoints[i][0:2]))
                 coords.append(coords[0])
                 # already done this point as only one intersection!
 
-        elif sum(touch) == 2:
+        elif sum(touch) == 2:       # MODE 4
+            mode = 4
             coords = facetPoints[:]
             coords.pop(touch.index(0))
             coords = [tuple(coords[0][0:2]), tuple(coords[1][0:2])]
 
-        elif sum(above) == 2 or sum(below) == 2:
+        elif sum(above) == 2 or sum(below) == 2:    # MODE 1
+            mode = 1
             if sum(above) == 2:
                 pair = above[:]
             else:
@@ -229,6 +234,9 @@ def slice_facet(facetPoints, sliceDepth):
             coords.append(find_intersection(linePoints, sliceDepth))
 
     logging.debug("Facet intersects at %s", str(coords))
+
+    if len(coords) is 1:
+        print("Only one coord:", coords, "\t Mode:", mode)
 
     return coords
 # End of function slice_facet
@@ -291,7 +299,6 @@ def flatten(l):
     return [item for sublist in l for item in sublist]
 
 
-
 def next_point_by_distance(startPoint, points):
     # Find vectors from first point to all others
     vectors = []
@@ -327,9 +334,14 @@ def order_points_in_pairs(points):
 
     # Round the points for better searching
     roundedPoints = []
-    for (a, b) in points:
-        #print("P=", a, "\t", b)
-        roundedPoints.append([(round(a[0], rounding), round(a[1], rounding)), (round(b[0], rounding), round(b[1], rounding))])
+    for i, p in enumerate(points):
+        try:
+            (a, b) = p
+            #print("P=", a, "\t", b)
+            roundedPoints.append([(round(a[0], rounding), round(a[1], rounding)), (round(b[0], rounding), round(b[1], rounding))])
+            #print(p)
+        except ValueError:
+            print("Error on", i, "\t Data:", p)
 
     # Start from origin
     nextPoint = (0, 0)
@@ -340,12 +352,14 @@ def order_points_in_pairs(points):
         try:
             nextIndex = flatten(roundedPoints).index(nextRound)
         except ValueError:
-            logging.debug("Couldn't find %s", str(nextRound))
+            print("Couldn't find %s"%str(nextRound))
             nextIndex = next_point_by_distance(nextRound, flatten(roundedPoints))
         pairOffset = nextIndex % 2
         nextIndex = int((nextIndex - pairOffset) / 2)
-        logging.debug("Next index: %d \t Pair offset: %d", nextIndex,  pairOffset)
-        logging.debug("Next closest: %s", str(points[nextIndex][pairOffset]))
+
+        print("Next index: %d \t Pair offset: %d"%(nextIndex,  pairOffset))
+        print("Length: ", len(points), "\t Point:", points[nextIndex])
+        print("Next closest: %s"%str(points[nextIndex][pairOffset]))
 
         line = points.pop(nextIndex)
         roundLine = roundedPoints.pop(nextIndex)
@@ -362,9 +376,9 @@ def order_points_in_pairs(points):
             nextRound = roundLine[1]
 
 
-        logging.debug("At: %s \tGoing to: %s", str(sortedPoints[len(sortedPoints)-1]), str(nextPoint))
+        #print("At: %s \tGoing to: %s"%(str(sortedPoints[len(sortedPoints)-1]), str(nextPoint)))
+        #print()
 
-    logging.info("In order: %s", str(sortedPoints))
     return sortedPoints
 # End of function order_points_in_pairs
 
@@ -416,13 +430,28 @@ def plot(pointsList, scale=40, margin=5):
 # End of function plot
 
 
+def remove_duplicates(listA):
+    listB = []
+    while 2 < len(listA):
+        b = listA.pop()
+        for i, a in enumerate(listA):
+            if a == b:
+                listA.pop(i)
+                print("a:", a)
+        listB.append(b)
+        print("B:", listB)
+    return listB[:]
+# Doesnt work properly!!
+
+
 def main():
-    facetPoints = load_STL("2cm Donut 2 Binary.STL")
+    facetPoints = load_STL("2cm Donut Binary.STL")
+
 
     pointsSet = []
     for facet in facetPoints:
         try:
-            slice = slice_facet(facet, 2.5)
+            slice = slice_facet(facet, 5)
             if slice != 0 and slice != []:
                 pointsSet.append(slice)
                 #print("Got slice", slice)
@@ -430,15 +459,15 @@ def main():
             print("Could not slice facet!!")
 
     print("All points:    \t", pointsSet)
+    #pointsSet = remove_duplicates(pointsSet)
+    print("Unique points: \t", pointsSet)
     #pointsSet = list(set(pointsSet))
     #print("Unique points: \t", pointsSet)
     flatPoints = flatten(pointsSet)
-    print("Flat Points:", flatPoints)
     #sortedPoints = order_points_by_distance(flatPoints)
-    sortedPoints = order_points_in_pairs(pointsSet)
+    sortedPoints = order_points_in_pairs((pointsSet))
     print("Ordered points:\t", sortedPoints)
     plot(sortedPoints)
 
 
 main()
-    
