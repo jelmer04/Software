@@ -208,6 +208,7 @@ def slice_facet(facetPoints, sliceDepth):
                 coords.append(tuple(facetPoints[i][0:2]))
                 coords.append(coords[0])
                 # already done this point as only one intersection!
+                return 0
 
         elif sum(touch) == 2:       # MODE 4
             mode = 4
@@ -332,7 +333,8 @@ def order_points_in_pairs(points):
     logging.debug("Rounding to:", rounding)'''
 
     sortedPoints = []
-    rounding = 10
+    loops = []
+    rounding = 5
 
     # Round the points for better searching
     roundedPoints = []
@@ -349,13 +351,24 @@ def order_points_in_pairs(points):
     nextPoint = (0, 0)
     nextRound = (0, 0)
 
-    while 1 < len(points):
+    while 0 < len(points):
         logging.debug("At: $s", str(nextPoint))
         try:
             nextIndex = flatten(roundedPoints).index(nextRound)
+
         except ValueError:
-            #print("Couldn't find %s"%str(nextRound))
-            nextIndex = next_point_by_distance(nextRound, flatten(roundedPoints))
+            print("Couldn't find %s in %s"%(str(nextPoint),str(points)))
+            #nextIndex = next_point_by_distance(nextRound, flatten(roundedPoints))
+            nextIndex = next_point_by_distance(nextPoint, flatten(points))
+
+            if len(sortedPoints) > 0:
+                print("Splitting loop at", nextPoint)
+                print("A loop:", sortedPoints)
+                sortedPoints.append(nextPoint)    # Close the loop
+                loops.append(sortedPoints)
+                sortedPoints = []
+                #sortedPoints = [flatten(points)[nextIndex]]
+
         pairOffset = nextIndex % 2
         nextIndex = int((nextIndex - pairOffset) / 2)
 
@@ -381,7 +394,9 @@ def order_points_in_pairs(points):
         #print("At: %s \tGoing to: %s"%(str(sortedPoints[len(sortedPoints)-1]), str(nextPoint)))
         #print()
 
-    return sortedPoints
+    sortedPoints.append(sortedPoints[0])
+    loops.append(sortedPoints)
+    return loops
 # End of function order_points_in_pairs
 
 
@@ -395,7 +410,7 @@ def dot(a, b):
     return sum(i * j for (i, j) in zip(a, b))
 
 
-def plot(canvas, pointsList, rad = 4, scale=40, margin=10):
+def plot(canvas, pointsList, rad = 4, traceColor = "black", scale=40, margin=10):
     print("Plotting: ", pointsList)
 
     try:
@@ -421,7 +436,7 @@ def plot(canvas, pointsList, rad = 4, scale=40, margin=10):
 
         lines = scaled[:]
         while 1 < len(lines):
-            canvas.create_line(lines[0][0], lines[0][1], lines[1][0], lines[1][1], width=1, fill="black")
+            canvas.create_line(lines[0][0], lines[0][1], lines[1][0], lines[1][1], width=1, fill=traceColor)
             lines.pop(0)
 
     except:
@@ -430,16 +445,37 @@ def plot(canvas, pointsList, rad = 4, scale=40, margin=10):
 
 
 def remove_duplicates(listA):
-    for a in listA:
+    roundA = []
+    listB = []
+    rounding = 10
+
+    for i, p in enumerate(listA):
+        try:
+            (a, b) = p
+            #print("P=", a, "\t", b)
+            roundA.append([(round(a[0], rounding), round(a[1], rounding)), (round(b[0], rounding), round(b[1], rounding))])
+
+            #print(p)
+        except ValueError:
+            print("Error on", i, "\t Data:", p)
+
+    for a, r in zip(listA, roundA):
         while 1:
             try:
-                listA.pop(listA.index(a))
+                index = roundA.index(r)
+                listA.pop(index)
+                roundA.pop(index)
                 #print("a:", a)
             except ValueError:
                 break
+            if a[0] != a[1]:
+                listB.append(a)
+            else:
+                print(p, "is a repeated point")
+
         #print(len(listA), "values in", "A:", listA)
-    return listA[:]
-# Might not work??
+    return listB[:]
+# End function remove_duplicates
 
 
 def perimeter_offset(points, offset):
@@ -450,12 +486,15 @@ def perimeter_offset(points, offset):
     point = points[0]
     vector = sub(point, lastPoint)
     normal = (vector[1], - vector[0])
-    length = find_length(normal)
-    print("Normal:", length, "Length:", find_length(lastPoint))
-    normal = (n/length for n in normal)     # Unit vector
+    normalLength = find_length(normal)
+    normal = (n/normalLength for n in normal)     # Unit vector
+
     offsetVector = tuple(offset * n for n in normal)
-    print(find_length(sub(lastPoint, offsetVector)))
-    if find_length(sub(lastPoint, offsetVector)) > find_length(lastPoint):
+    length = find_length(sub(lastPoint, offsetVector))
+
+    print("Point:", point, "Normal:", normalLength, "Length:", length)
+
+    if length > find_length(lastPoint):
         sign = 1
     else:
         sign = -1
@@ -527,10 +566,10 @@ def find_line_intersection(posA, dirA, posB, dirB):
 
 
 def main():
-    depth = 9
-    offset = 5
+    depth = 6
+    offset = 1
 
-    facetPoints = load_STL("2cm Ball Binary.STL")
+    facetPoints = load_STL("2cm Donut Binary.STL")
 
     pointsSet = []
     print("Loaded", len(facetPoints), "facets")
@@ -545,17 +584,21 @@ def main():
             return
 
     print("All points:    \t", pointsSet)
-    #pointsSet = remove_duplicates(pointsSet)
-    print("Unique points: \t", pointsSet)
-    #pointsSet = list(set(pointsSet))
-    #print("Unique points: \t", pointsSet)
-    sortedPoints = remove_duplicates(pointsSet)
-    flatPoints = flatten(pointsSet)
-    #sortedPoints = order_points_by_distance(flatPoints)
-    sortedPoints = order_points_in_pairs(pointsSet)
-    print("Ordered points:\t", sortedPoints)
 
-    sortedPoints.append(sortedPoints[0])
+    #pointsSet = remove_duplicates(pointsSet)
+    #print("Unique points: \t", pointsSet)
+
+    #pointsSet.reverse()
+
+    print("Sorting...")
+    loops = order_points_in_pairs(pointsSet)
+
+    #loops.reverse()
+
+    #for i, loop in enumerate(loops):
+        #print("Ordered loop", i, "is:", loop)
+
+
 
     root = Tk()
     root.title("Plot of points")
@@ -563,9 +606,16 @@ def main():
     canvas = Canvas(root, width=1000, height=1000, bg="white")
     canvas.pack()
 
-    plot(canvas, sortedPoints, 2)
-    #plot(canvas, flatten(perimeter_offset(sortedPoints[:], offset)),10)
-    plot(canvas, perimeter_trim(perimeter_offset(sortedPoints[:], offset)))
+    print("Found", len(loops), "loops...")
+    for i, loop in enumerate(loops):
+        if 1:
+            print("Plotting loop", i)
+            plot(canvas, loop, 2)
+        else:
+            pass
+
+        #plot(canvas, flatten(perimeter_offset(loop, offset)), 10)
+        plot(canvas, perimeter_trim(perimeter_offset(loop, offset)), 4, "blue")
 
     root.mainloop()
 
