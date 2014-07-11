@@ -12,6 +12,7 @@ import math
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
+
 def load_STL(fileName):
     """Load the STL file, either ASCII or Binary - detected automatically"""
 
@@ -28,22 +29,24 @@ def load_STL(fileName):
     # Print the file size comparison
     logging.info("File should contain   %d facets", facetCount)
     logging.info("File size should be   %d bytes", estimateSize)
-    logging.info("File size is actually %d bytes", fileSize,)
+    logging.info("File size is actually %d bytes", fileSize, )
     file.close()
     # Check the size of the file is as expected for the number of facets
     if fileSize == estimateSize:
         # Its a binary file
         print("Opening", fileName, "in binary mode...")
         file = open(fileName, "br")
-        facetList = load_STL_Binary(file)
+        (facetList, facetNormals) = load_STL_Binary(file)
         file.close()
     else:
         # Its an ASCII file
         print("Opening", fileName, "in ASCII mode...")
         file = open(fileName, "r")
-        facetList = load_STL_ASCII(file)
+        (facetList, facetNormals) = load_STL_ASCII(file)
         file.close()
-    return facetList
+    return facetList, facetNormals
+
+
 # End of function load_STL
 
 
@@ -52,6 +55,7 @@ def load_STL_ASCII(file):
 
     # List of points which make up each facet
     facetList = []
+    normalsList = []
     # Read the first line and check if it says solid
     line = file.readlines(1)[0]
     if not line.startswith("solid"):
@@ -72,6 +76,7 @@ def load_STL_ASCII(file):
                 except ValueError:
                     logging.debug("%s is not a float", val)
                     return 1
+            normalsList.append(normal)
 
             # Find the coords:
             coords = []
@@ -114,18 +119,21 @@ def load_STL_ASCII(file):
 
         elif line == "endsolid":
             # end of file - stop here
-            return facetList
+            return (facetList, normalsList)
         else:
             logging.warning("File is bad - expected facet normal")
             return 1
     logging.warning("Dropped out of the loop - something went wrong!")
     return 1
+
+
 # End of function load_STL_ASCII
 
 
 def load_STL_Binary(file):
     """Load a facet from an STL file"""
 
+    normalsList = []
     # List of points which make up each facet
     facetList = []
     # Read the 80 byte ASCII header
@@ -140,6 +148,7 @@ def load_STL_Binary(file):
         normal = [0, 0, 0]
         for i in range(3):
             normal[i] = struct.unpack("<f", file.read(4))[0]
+        normalsList.append(normal)
 
         # Find the coords:
         coords = [0, 0, 0]
@@ -157,7 +166,9 @@ def load_STL_Binary(file):
         # Got the coordinates
         logging.debug("Facet loaded with normal %s\n\tand coords %s", str(normal), str(coords))
         facetList.append(coords)
-    return facetList
+    return (facetList, normalsList)
+
+
 # End of function load_STL_Binary
 
 
@@ -194,7 +205,7 @@ def slice_facet(facetPoints, sliceDepth):
             return 0
 
         elif sum(touch) == 1:
-            if sum(above) == 1 and sum(below) == 1:     # MODE 2
+            if sum(above) == 1 and sum(below) == 1:  # MODE 2
                 mode = 2
                 # need to find one intersection
                 linePoints = facetPoints[:]
@@ -203,20 +214,20 @@ def slice_facet(facetPoints, sliceDepth):
                 coords.append(find_slice_intersection(linePoints, sliceDepth))
                 pass
 
-            elif sum(above) == 0 or sum(below) == 0:    # MODE 3
+            elif sum(above) == 0 or sum(below) == 0:  # MODE 3
                 mode = 3
                 coords.append(tuple(facetPoints[i][0:2]))
                 coords.append(coords[0])
                 # already done this point as only one intersection!
                 return 0
 
-        elif sum(touch) == 2:       # MODE 4
+        elif sum(touch) == 2:  # MODE 4
             mode = 4
             coords = facetPoints[:]
             coords.pop(touch.index(0))
             coords = [tuple(coords[0][0:2]), tuple(coords[1][0:2])]
 
-        elif sum(above) == 2 or sum(below) == 2:    # MODE 1
+        elif sum(above) == 2 or sum(below) == 2:  # MODE 1
             mode = 1
             if sum(above) == 2:
                 pair = above[:]
@@ -242,6 +253,8 @@ def slice_facet(facetPoints, sliceDepth):
         print("Only one coord:", coords, "\t Mode:", mode)
 
     return coords
+
+
 # End of function slice_facet
 
 
@@ -269,6 +282,8 @@ def find_slice_intersection(linePoints, sliceDepth):
     logging.debug("Intersection at %s", str(I))
 
     return tuple(I[0:2])
+
+
 # End of function find_intersection
 
 
@@ -288,13 +303,16 @@ def order_points_by_distance(points):
         distances = [find_length((v[0] - vector[0], v[1] - vector[1])) for v in vectors]
         closestIndex = distances.index(min(distances))
         closestPoint = points[closestIndex]
-        logging.debug("Distance from %s\tto %s\tis %s\tClosest point: %s", str(vector), str(vectors), str(distances), str(closestPoint))
+        logging.debug("Distance from %s\tto %s\tis %s\tClosest point: %s", str(vector), str(vectors), str(distances),
+                      str(closestPoint))
         sortedPoints.append(points.pop(closestIndex))
         vector = vectors.pop(closestIndex)
 
     logging.debug("In order: %s", str(sortedPoints))
 
     return sortedPoints
+
+
 # End of function order_points_by_distance
 
 
@@ -305,7 +323,7 @@ def flatten(l):
 def next_point_by_distance(startPoint, points):
     # Find vectors from first point to all others
     vectors = []
-    #print(points)
+    # print(points)
     for p in points:
         #print(p)
         vectors.append(tuple((p[0] - startPoint[0], p[1] - startPoint[1])))
@@ -314,13 +332,15 @@ def next_point_by_distance(startPoint, points):
     distances = [find_length(v) for v in vectors]
     closestIndex = distances.index(min(distances))
     closestPoint = points[closestIndex]
-    logging.debug("Distance from %s\tto %s\tis %s\tClosest point: %s", str(startPoint), str(vectors), str(distances), str(closestPoint))
+    logging.debug("Distance from %s\tto %s\tis %s\tClosest point: %s", str(startPoint), str(vectors), str(distances),
+                  str(closestPoint))
     return closestIndex
+
+
 # End of function next_point_by_distance
 
 
-def order_points_in_pairs(points):
-
+def order_points_in_pairs(points, normals):
     '''maxValue = 0
     # Find a suitable rounding value
     for (a, b) in points:
@@ -333,6 +353,7 @@ def order_points_in_pairs(points):
     logging.debug("Rounding to:", rounding)'''
 
     sortedPoints = []
+    sortedNormals = []
     loops = []
     rounding = 5
 
@@ -341,8 +362,9 @@ def order_points_in_pairs(points):
     for i, p in enumerate(points):
         try:
             (a, b) = p
-            #print("P=", a, "\t", b)
-            roundedPoints.append([(round(a[0], rounding), round(a[1], rounding)), (round(b[0], rounding), round(b[1], rounding))])
+            # print("P=", a, "\t", b)
+            roundedPoints.append(
+                [(round(a[0], rounding), round(a[1], rounding)), (round(b[0], rounding), round(b[1], rounding))])
             #print(p)
         except ValueError:
             print("Error on", i, "\t Data:", p)
@@ -357,22 +379,24 @@ def order_points_in_pairs(points):
             nextIndex = flatten(roundedPoints).index(nextRound)
 
         except ValueError:
-            print("Couldn't find %s in %s"%(str(nextPoint),str(points)))
+            # print("Couldn't find %s in %s"%(str(nextPoint),str(points)))
             #nextIndex = next_point_by_distance(nextRound, flatten(roundedPoints))
             nextIndex = next_point_by_distance(nextPoint, flatten(points))
 
             if len(sortedPoints) > 0:
-                print("Splitting loop at", nextPoint)
-                print("A loop:", sortedPoints)
-                sortedPoints.append(nextPoint)    # Close the loop
+                #print("Splitting loop at", nextPoint)
+                #print("A loop:", sortedPoints)
+                sortedPoints.append(nextPoint)  # Close the loop
                 loops.append(sortedPoints)
                 sortedPoints = []
                 #sortedPoints = [flatten(points)[nextIndex]]
 
+        sortedNormals.append(normals.pop(nextIndex))
+
         pairOffset = nextIndex % 2
         nextIndex = int((nextIndex - pairOffset) / 2)
 
-        #print("Next index: %d \t Pair offset: %d"%(nextIndex,  pairOffset))
+        # print("Next index: %d \t Pair offset: %d"%(nextIndex,  pairOffset))
         #print("Length: ", len(points), "\t Point:", points[nextIndex])
         #print("Next closest: %s"%str(points[nextIndex][pairOffset]))
 
@@ -391,12 +415,14 @@ def order_points_in_pairs(points):
             nextRound = roundLine[1]
 
 
-        #print("At: %s \tGoing to: %s"%(str(sortedPoints[len(sortedPoints)-1]), str(nextPoint)))
-        #print()
+            #print("At: %s \tGoing to: %s"%(str(sortedPoints[len(sortedPoints)-1]), str(nextPoint)))
+            #print()
 
     sortedPoints.append(sortedPoints[0])
     loops.append(sortedPoints)
-    return loops
+    return (loops, normals)
+
+
 # End of function order_points_in_pairs
 
 
@@ -410,13 +436,11 @@ def dot(a, b):
     return sum(i * j for (i, j) in zip(a, b))
 
 
-def plot(canvas, pointsList, rad = 4, traceColor = "black", scale=40, margin=10):
+def plot(canvas, pointsList, rad=4, traceColor="black", scale=40, margin=10):
     print("Plotting: ", pointsList)
 
     try:
         scaled = [((point[0] * scale) + margin, 1000 - (point[1] * scale) - margin) for point in pointsList]
-
-
 
         for i, point in enumerate(scaled):
             x = point[0]
@@ -425,7 +449,7 @@ def plot(canvas, pointsList, rad = 4, traceColor = "black", scale=40, margin=10)
             if i == 0:
                 fill = "green"
                 outline = "green"
-            elif i == len(scaled)-1:
+            elif i == len(scaled) - 1:
                 fill = ""
                 outline = "red"
             else:
@@ -441,6 +465,8 @@ def plot(canvas, pointsList, rad = 4, traceColor = "black", scale=40, margin=10)
 
     except:
         print("An error has occurred!")
+
+
 # End of function plot
 
 
@@ -452,8 +478,9 @@ def remove_duplicates(listA):
     for i, p in enumerate(listA):
         try:
             (a, b) = p
-            #print("P=", a, "\t", b)
-            roundA.append([(round(a[0], rounding), round(a[1], rounding)), (round(b[0], rounding), round(b[1], rounding))])
+            # print("P=", a, "\t", b)
+            roundA.append(
+                [(round(a[0], rounding), round(a[1], rounding)), (round(b[0], rounding), round(b[1], rounding))])
 
             #print(p)
         except ValueError:
@@ -465,7 +492,7 @@ def remove_duplicates(listA):
                 index = roundA.index(r)
                 listA.pop(index)
                 roundA.pop(index)
-                #print("a:", a)
+                # print("a:", a)
             except ValueError:
                 break
             if a[0] != a[1]:
@@ -473,16 +500,18 @@ def remove_duplicates(listA):
             else:
                 print(p, "is a repeated point")
 
-        #print(len(listA), "values in", "A:", listA)
+                # print(len(listA), "values in", "A:", listA)
     return listB[:]
+
+
 # End function remove_duplicates
 
 
-def perimeter_offset(points, offset):
+def perimeter_offset(points, normals, offset):
     newPoints = []
     lastPoint = points.pop(0)
 
-    # Find the sign to use - is the offset nearer than the start?
+    # Find the sign to use
     point = points[0]
     vector = sub(point, lastPoint)
     normal = (vector[1], - vector[0])
@@ -494,7 +523,9 @@ def perimeter_offset(points, offset):
 
     print("Point:", point, "Normal:", normalLength, "Length:", length)
 
-    if length > find_length(lastPoint):
+    reference = find_offset_reference(points)
+
+    if find_length(sub(absolute(sub(lastPoint, reference)), offsetVector)) > find_length(sub(lastPoint, reference)):
         sign = 1
     else:
         sign = -1
@@ -505,12 +536,19 @@ def perimeter_offset(points, offset):
 
     while len(points) > 1:
         point = points[0]
+
+        #normal = normals.pop(0)
+
         vector = sub(point, lastPoint)
         normal = (sign * vector[1], - sign * vector[0])
+
         length = find_length(normal)
+
+        print("Line:", lastPoint, point, "Normal:", normal, length)
+
         if length != 0:
 
-            normal = (n/length for n in normal)     # Unit vector
+            normal = (n / length for n in normal)  # Unit vector
 
             offsetVector = tuple(offset * n for n in normal)
             newPoints.append([sub(lastPoint, offsetVector), sub(point, offsetVector)])
@@ -520,23 +558,24 @@ def perimeter_offset(points, offset):
 
         lastPoint = points.pop(0)
 
-    print("Offset to:", newPoints)
+    #print("Offset to:", newPoints)
     return newPoints
 
 
 def perimeter_trim(points):
     newPoints = []
 
-    #print("Trimming: ", points)
+    print("Trimming: ", points)
 
     lastLine = points[-1]
     points.append(points[0])
 
     while len(points) > 1:
         thisLine = points.pop(0)
-        intersection = find_line_intersection(lastLine[0], sub(lastLine[1], lastLine[0]), thisLine[0], sub(thisLine[1], thisLine[0]))
+        intersection = find_line_intersection(lastLine[0], sub(lastLine[1], lastLine[0]), thisLine[0],
+                                              sub(thisLine[1], thisLine[0]))
 
-        #print("Last line:", lastLine, "\t This line:", thisLine, "\t Intersection:", intersection)
+        # print("Last line:", lastLine, "\t This line:", thisLine, "\t Intersection:", intersection)
 
         newPoints.append(intersection)
         lastLine = points.pop(0)
@@ -551,13 +590,14 @@ def sub(A, B):
 
 
 def find_line_intersection(posA, dirA, posB, dirB):
+    # print(posA, dirA, posB, dirB)
 
-    #print(posA, dirA, posB, dirB)
-
-    if (dirA[1] == 0 and dirB[1] == 0) or ((dirA[1] != 0 and dirB[1] != 0) and (dirA[0]/dirA[1] == dirB[0]/dirB[1])) or (posA == posB):
+    if (dirA[1] == 0 and dirB[1] == 0) or (
+                (dirA[1] != 0 and dirB[1] != 0) and (dirA[0] / dirA[1] == dirB[0] / dirB[1])) or (posA == posB):
         return posB
 
-    R = ((posA[0] * dirB[1]) - (posA[1] * dirB[0]) + (posB[1] * dirB[0]) - (posB[0] * dirB[1])) / ((dirA[1] * dirB[0]) - (dirA[0] * dirB[1]))
+    R = ((posA[0] * dirB[1]) - (posA[1] * dirB[0]) + (posB[1] * dirB[0]) - (posB[0] * dirB[1])) / (
+        (dirA[1] * dirB[0]) - (dirA[0] * dirB[1]))
 
     I = tuple(R * v for v in dirA)
     I = (I[0] + posA[0], I[1] + posA[1])
@@ -565,40 +605,68 @@ def find_line_intersection(posA, dirA, posB, dirB):
     return I
 
 
+def find_offset_reference(points):
+    pointSum = [0, 0]
+    for p in points:
+        pointSum = (pointSum[0] + p[0], pointSum[1] + p[1])
+
+    midPoint = (pointSum[0] / len(points), pointSum[1] / len(points))
+
+    absSum = [0, 0]
+
+    for p in points:
+        p = sub(p, midPoint)
+        absSum = (absSum[0] + abs(p[0]), absSum[1] + abs(p[1]))
+
+    offsetPoint = (absSum[0] / len(points), absSum[1] / len(points))
+
+    return offsetPoint
+
+
+def absolute(p):
+    return (abs(p[0]), abs(p[1]))
+
+
 def main():
-    depth = 6
+    # Slicing at meridian - use 0.1 micron offset
+    depth = 15 - 0.0001
     offset = 1
 
-    facetPoints = load_STL("2cm Donut Binary.STL")
+    (facetPoints, facetNormals) = load_STL("2cm V.STL")
 
     pointsSet = []
+    normals = []
     print("Loaded", len(facetPoints), "facets")
-    for facet in facetPoints:
+    for (facet, normal) in zip(facetPoints, facetNormals):
         try:
             slice = slice_facet(facet, depth)
             if slice != 0 and slice != []:
                 pointsSet.append(slice)
-                #print("Got slice", slice, "\t from", facet)
+                normals.append(normal[0:2])
+                # print("Got slice", slice, "\t from", facet)
         except:
             print("Could not slice facet!!", facet)
             return
 
     print("All points:    \t", pointsSet)
 
-    #pointsSet = remove_duplicates(pointsSet)
+    # pointsSet = remove_duplicates(pointsSet)
     #print("Unique points: \t", pointsSet)
 
     #pointsSet.reverse()
 
     print("Sorting...")
-    loops = order_points_in_pairs(pointsSet)
+    (loops, normals) = order_points_in_pairs(pointsSet, facetNormals)
 
     #loops.reverse()
 
     #for i, loop in enumerate(loops):
-        #print("Ordered loop", i, "is:", loop)
+    #print("Ordered loop", i, "is:", loop)
 
+    #print("Centre at", find_offset_reference(flatten(loops)))
 
+    print("Loops:", loops)
+    print("Normals:", normals)
 
     root = Tk()
     root.title("Plot of points")
@@ -613,12 +681,15 @@ def main():
             plot(canvas, loop, 2)
         else:
             pass
-
         #plot(canvas, flatten(perimeter_offset(loop, offset)), 10)
-        plot(canvas, perimeter_trim(perimeter_offset(loop, offset)), 4, "blue")
+
+        offsetLoop = perimeter_offset(loop, normals, offset)
+        print("Offset to:", offsetLoop)
+
+        #plot(canvas, flatten(offsetLoop), 8, "gray")
+        plot(canvas, perimeter_trim(offsetLoop), 4, "blue")
 
     root.mainloop()
-
 
 
 main()
