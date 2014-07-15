@@ -19,10 +19,9 @@ def snap(facetlist, precision=2):
         for f in facet:
             s = ()
             for x in f:
-                s += (context.create_decimal_from_float(x), )
+                s += (Decimal(str(round(x, precision))), )
             snapped.append(s)
         snaplist.append(snapped)
-
     return snaplist
 # End of function snap()
 

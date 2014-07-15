@@ -6,9 +6,13 @@ from Slicer import sort
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.WARNING)
 
-print(stl.load("Parts\\2cm Cube Binary.STL"))
-print(stl.load("Parts\\2cm Cube ASCII.STL"))
+loaded = stl.load("Parts\\2cm V.STL")
+print("Loaded: ", loaded)
 
-sliced = slice.layer(slice.snap(stl.load("Parts\\2cm V.STL")), 15)
-print(sliced)
+snapped = slice.snap(loaded)
+print("Snapped:", snapped)
+
+sliced = slice.snap(slice.layer(snapped[:], 15))
+print("Sliced: ", sliced)
+
 print(sort.chop(sliced))

@@ -5,27 +5,32 @@ def chop(linelist):
     @param linelist:    list of line points [(normal), (point, (point)]...
     """
 
+    # Remove duplicates??
+    i = 0
+    while True:
+        for line in linelist[i+1:]:
+            if linelist[i][1:] == line[1:]:
+                linelist.pop(linelist.index(line))
+                print(line)
+        i += 1
+        if i <= len(linelist):
+            break
     pointcounter = []
+
     for [n, a, b] in linelist:
-        print("Points:", a, "\tand", b)
-        for x in (a, b):
-
+        for x in [a, b]:
             duplicate = False
-            for (y, c) in pointcounter:
-                if y == x:
+            for point in pointcounter:
+                if point[0] == x:
                     duplicate = True
-                    print("Duplicate", x, y)
-
+                    point[1] += 1
             if not duplicate:
-                count = 0
-                for [m, i, j] in linelist:
+                pointcounter.append([x, 1])
 
-                    if x == i:
-                        count += 1
-                    if x == j:
-                        count += 1
-                    print(x, count, i, j)
-                pointcounter.append((x, count))
-            linelist.pop(0)
+    extrapoints = []
+    for point in pointcounter:
+        if point[1] > 2:
+            extrapoints.append(point[0])
+
 
     return pointcounter
