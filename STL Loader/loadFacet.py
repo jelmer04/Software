@@ -36,15 +36,15 @@ def load_STL(fileName):
         # Its a binary file
         print("Opening", fileName, "in binary mode...")
         file = open(fileName, "br")
-        (facetList, facetNormals) = load_STL_Binary(file)
+        output = load_STL_binary(file)
         file.close()
     else:
         # Its an ASCII file
         print("Opening", fileName, "in ASCII mode...")
         file = open(fileName, "r")
-        (facetList, facetNormals) = load_STL_ASCII(file)
+        output = load_STL_ASCII(file)
         file.close()
-    return facetList, facetNormals
+    return output
 
 
 # End of function load_STL
@@ -119,7 +119,7 @@ def load_STL_ASCII(file):
 
         elif line == "endsolid":
             # end of file - stop here
-            return (facetList, normalsList)
+            return zip(facetList, normalsList)
         else:
             logging.warning("File is bad - expected facet normal")
             return 1
@@ -130,7 +130,7 @@ def load_STL_ASCII(file):
 # End of function load_STL_ASCII
 
 
-def load_STL_Binary(file):
+def load_STL_binary(file):
     """Load a facet from an STL file"""
 
     normalsList = []
@@ -166,10 +166,8 @@ def load_STL_Binary(file):
         # Got the coordinates
         logging.debug("Facet loaded with normal %s\n\tand coords %s", str(normal), str(coords))
         facetList.append(coords)
-    return (facetList, normalsList)
-
-
-# End of function load_STL_Binary
+    return zip(facetList, normalsList)
+# End of function load_STL_binary
 
 
 def slice_facet(facetPoints, sliceDepth):
@@ -524,6 +522,7 @@ def perimeter_offset(points, normals, offset):
     print("Point:", point, "Normal:", normalLength, "Length:", length)
 
     reference = find_offset_reference(points)
+    reference = (0,0)
 
     if find_length(sub(absolute(sub(lastPoint, reference)), offsetVector)) > find_length(sub(lastPoint, reference)):
         sign = 1
@@ -629,10 +628,10 @@ def absolute(p):
 
 def main():
     # Slicing at meridian - use 0.1 micron offset
-    depth = 15 - 0.0001
+    depth = 17
     offset = 1
 
-    (facetPoints, facetNormals) = load_STL("2cm V.STL")
+    facetPoints, facetNormals = zip(*load_STL("2cm V.STL"))
 
     pointsSet = []
     normals = []
@@ -653,10 +652,8 @@ def main():
     # pointsSet = remove_duplicates(pointsSet)
     #print("Unique points: \t", pointsSet)
 
-    #pointsSet.reverse()
-
     print("Sorting...")
-    (loops, normals) = order_points_in_pairs(pointsSet, facetNormals)
+    (loops, normals) = order_points_in_pairs(pointsSet, list(facetNormals))
 
     #loops.reverse()
 
@@ -686,8 +683,8 @@ def main():
         offsetLoop = perimeter_offset(loop, normals, offset)
         print("Offset to:", offsetLoop)
 
-        #plot(canvas, flatten(offsetLoop), 8, "gray")
-        plot(canvas, perimeter_trim(offsetLoop), 4, "blue")
+        #plot(canvas, flatten(offsetLoop), 10, "green")
+        plot(canvas, perimeter_trim(offsetLoop), 1, "blue")
 
     root.mainloop()
 
