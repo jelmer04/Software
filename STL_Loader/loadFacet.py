@@ -1,5 +1,7 @@
 """
 Created by Jon Elmer on 01-07-2014
+
+
 """
 
 from tkinter import *  # GUI
@@ -628,10 +630,10 @@ def absolute(p):
 
 def main():
     # Slicing at meridian - use 0.1 micron offset
-    depth = 17
+    depth = 15
     offset = 1
 
-    facetPoints, facetNormals = zip(*load_STL("2cm V.STL"))
+    facetPoints, facetNormals = zip(*load_STL("..\\Parts\\2cm V.STL"))
 
     pointsSet = []
     normals = []
