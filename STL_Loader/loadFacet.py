@@ -633,7 +633,7 @@ def main():
     depth = 15
     offset = 1
 
-    facetPoints, facetNormals = zip(*load_STL("..\\Parts\\2cm V.STL"))
+    facetPoints, facetNormals = zip(*load_STL("..\\Parts\\2cm Cube Binary.STL"))
 
     pointsSet = []
     normals = []
