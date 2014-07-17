@@ -1,0 +1,51 @@
+solid Conjoined Pyramids
+   facet normal -4.900000e-001 -8.400000e-001 2.400000e-001
+      outer loop
+         vertex 0.000000e+000 5.000000e+000 0.000000e+000
+         vertex 8.660000e+000 0.000000e+000 0.000000e+000
+         vertex 4.330000e+000 5.000000e+000 8.660000e+000
+      endloop
+   endfacet
+   facet normal -4.900000e-001 8.400000e-001 2.400000e-001
+      outer loop
+         vertex 0.000000e+000 5.000000e+000 0.000000e+000
+         vertex 8.660000e+000 1.000000e+001 0.000000e+000
+         vertex 4.330000e+000 5.000000e+000 8.660000e+000
+      endloop
+   endfacet
+   facet normal 0.000000e+000 0.000000e+000 -1.000000e+000
+      outer loop
+         vertex 0.000000e+000 5.000000e+000 0.000000e+000
+         vertex 8.660000e+000 0.000000e+000 0.000000e+000
+         vertex 8.660000e+000 1.000000e+001 0.000000e+000
+      endloop
+   endfacet
+   facet normal 8.900000e-001 0.000000e+000 4.500000e-001
+      outer loop
+         vertex 8.660000e+000 0.000000e+000 0.000000e+000
+         vertex 8.660000e+000 1.000000e+001 0.000000e+000
+         vertex 4.330000e+000 5.000000e+000 8.660000e+000
+      endloop
+   endfacet
+   facet normal 4.000000e-001 -6.900000e-001 6.000000e-001
+      outer loop
+         vertex 8.660000e+000 0.000000e+000 0.000000e+000
+         vertex 4.330000e+000 5.000000e+000 8.660000e+000
+         vertex 1.732000e+001 5.000000e+000 0.000000e+000
+      endloop
+   endfacet
+   facet normal 0.000000e+000 0.000000e+000 -1.000000e+000
+      outer loop
+         vertex 8.660000e+000 0.000000e+000 0.000000e+000
+         vertex 8.660000e+000 1.000000e+001 0.000000e+000
+         vertex 1.732000e+001 5.000000e+000 0.000000e+000
+      endloop
+   endfacet
+   facet normal 4.000000e-001 6.900000e-001 6.000000e-001
+      outer loop
+         vertex 8.660000e+000 1.000000e+001 0.000000e+000
+         vertex 4.330000e+000 5.000000e+000 8.660000e+000
+         vertex 1.732000e+001 5.000000e+000 0.000000e+000
+      endloop
+   endfacet
+endsolid

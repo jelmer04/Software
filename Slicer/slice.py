@@ -114,6 +114,8 @@ def layer(facetlist, depth):
             # print("Invalid number of line points:", coords, "\t Mode:", mode)
         if mode == 1 or mode == 2 or mode == 4:
             linelist.append(coords)
+
+    print("Found", len(linelist), "lines.")
     return linelist
 # End of function layer()
 

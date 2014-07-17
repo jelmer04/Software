@@ -52,6 +52,8 @@ def chop(linelist):
 
     pointcounter = count_points(linelist)
 
+    print("Point Count:", pointcounter)
+
     # Find the triple-point coordinated
     extrapoints = []
     for point in pointcounter:
@@ -59,11 +61,21 @@ def chop(linelist):
             extrapoints.append(point[0])
 
     # Remove the triple-point line
-    if len(extrapoints) == 2:
-        for i, line in enumerate(linelist):
-            if line[1:] == [extrapoints[0], extrapoints[1]] or line[1:] == [extrapoints[1], extrapoints[0]]:
-                #print("Found", line[1:])
+    if len(extrapoints) > 1:
+        print("Extra Points:", extrapoints)
+        i = 0
+        #for i, line in enumerate(linelist):
+        while i < len(linelist):
+            line = linelist[i][1:]
+            a = [extrapoints[0], extrapoints[1]]
+            b = [extrapoints[1], extrapoints[0]]
+            if line == a or line == b:
+                print("Found", line)
                 linelist.pop(i)
+            else:
+                i += 1
+
+    print("Repaired Count:", count_points(linelist))
 
     islands = []
     while len(linelist) > 0:
@@ -73,7 +85,7 @@ def chop(linelist):
         i = 0
         #print("Starting at:", start)
 
-        while True:
+        while i < len(linelist):
             line = linelist[i]
             i += 1
             #print("Searching for:", search, "in", line[1], line[2])

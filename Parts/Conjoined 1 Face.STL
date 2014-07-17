@@ -1,0 +1,51 @@
+solid    Shape      
+   facet normal    -490.00000e-003   -840.00000e-003   240.00000e-003
+      outer loop         
+         vertex   0.00000e+000   5.00000e+000   0.00000e+000
+         vertex   8.66000e+000   0.00000e+000   0.00000e+000
+         vertex   4.33000e+000   5.00000e+000   8.66000e+000
+      endloop         
+   endfacet         
+   facet normal    -490.00000e-003   840.00000e-003   240.00000e-003
+      outer loop         
+         vertex   0.00000e+000   5.00000e+000   0.00000e+000
+         vertex   8.66000e+000   10.00000e+000   0.00000e+000
+         vertex   4.33000e+000   5.00000e+000   8.66000e+000
+      endloop         
+   endfacet         
+   facet normal    0.00000e+000   0.00000e+000   -1.00000e+000
+      outer loop         
+         vertex   0.00000e+000   5.00000e+000   0.00000e+000
+         vertex   8.66000e+000   0.00000e+000   0.00000e+000
+         vertex   8.66000e+000   10.00000e+000   0.00000e+000
+      endloop         
+   endfacet         
+   facet normal    890.00000e-003   0.00000e+000   450.00000e-003
+      outer loop         
+         vertex   8.66000e+000   0.00000e+000   0.00000e+000
+         vertex   8.66000e+000   10.00000e+000   0.00000e+000
+         vertex   4.33000e+000   5.00000e+000   8.66000e+000
+      endloop         
+   endfacet         
+   facet normal    400.00000e-003   -690.00000e-003   600.00000e-003
+      outer loop         
+         vertex   8.66000e+000   0.00000e+000   0.00000e+000
+         vertex   4.33000e+000   5.00000e+000   8.66000e+000
+         vertex   17.32000e+000   5.00000e+000   0.00000e+000
+      endloop         
+   endfacet         
+   facet normal    0.00000e+000   0.00000e+000   -1.00000e+000
+      outer loop         
+         vertex   8.66000e+000   0.00000e+000   0.00000e+000
+         vertex   8.66000e+000   10.00000e+000   0.00000e+000
+         vertex   17.32000e+000   5.00000e+000   0.00000e+000
+      endloop         
+   endfacet         
+   facet normal    400.00000e-003   690.00000e-003   600.00000e-003
+      outer loop         
+         vertex   8.66000e+000   10.00000e+000   0.00000e+000
+         vertex   4.33000e+000   5.00000e+000   8.66000e+000
+         vertex   17.32000e+000   5.00000e+000   0.00000e+000
+      endloop         
+   endfacet         
+endsolid

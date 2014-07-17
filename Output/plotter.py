@@ -67,3 +67,21 @@ def plot(canvas, linelist, radius=4, trace="black", marker="blue"):
         canvas.create_line(x[0], y[0], x[1], y[1], width=1, fill=trace, dash=1)
     return
 # End of function plot()
+
+
+def points(canvas, linelist, radius=4, marker="blue"):
+    scale = 40
+    margin = 10
+
+    print("Plotting:", [[x, y] for (n, x, y) in linelist])
+    for i, line in enumerate(linelist):
+        x = (scale * line[1][0] + margin, scale * line[2][0] + margin)
+        y = (800 - scale * line[1][1] + margin, 800 - scale * line[2][1] + margin)
+
+        canvas.create_oval(x[0] - radius, y[0] - radius, x[0] + radius, y[0] + radius, width=1, fill="",
+                           outline=marker)
+
+        canvas.create_oval(x[1] - radius, y[1] - radius, x[1] + radius, y[1] + radius, width=1, fill="",
+                           outline=marker)
+
+    return
