@@ -19,7 +19,11 @@ def trim(linelist):
 
     for i, line in enumerate(linelist):
         last = linelist[i-1]
-        intersection = intersect(line[1], sub(line[2], line[1]), last[1], sub(last[2], last[1]))
+        #print("Trimming", line[1:], last[1:])
+        #print("Intersect:", line[1], sub(line[2], line[1]), last[1], sub(last[2], last[1]))
+        intersection = intersect(line[1], sub(line[2], line[1]), last[2], sub(last[1], last[2]))
+
+        #print("Intersection at", intersection)
 
         linelist[i][1] = intersection
         linelist[i-1][2] = intersection
