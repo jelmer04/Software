@@ -60,22 +60,25 @@ def chop(linelist):
         if point[1] == 3:
             extrapoints.append(point[0])
 
-    # Remove the triple-point line
-    if len(extrapoints) > 1:
+    # Remove the extra lines
+    if len(extrapoints) > 0:
         print("Extra Points:", extrapoints)
         i = 0
         #for i, line in enumerate(linelist):
         while i < len(linelist):
             line = linelist[i][1:]
-            a = [extrapoints[0], extrapoints[1]]
-            b = [extrapoints[1], extrapoints[0]]
-            if line == a or line == b:
-                print("Found", line)
+            count = 0
+            for point in extrapoints:
+                if point in line:
+                    count += 1
+                #print(point, line, count)
+            if count == 2:
+                print("Removed", line)
                 linelist.pop(i)
             else:
                 i += 1
 
-    print("Repaired Count:", count_points(linelist))
+        print("Repaired Count:", count_points(linelist))
 
     islands = []
     while len(linelist) > 0:

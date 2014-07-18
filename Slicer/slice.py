@@ -17,13 +17,18 @@ def snap(facetlist, precision=2):
     for facet in facetlist:
         snapped = []
         for f in facet:
-            s = ()
-            for x in f:
-                s += (Decimal(str(round(x, precision))), )
-            snapped.append(s)
+            snapped.append(snap_point(f, precision))
         snaplist.append(snapped)
     return snaplist
 # End of function snap()
+
+
+def snap_point(point, precision=2):
+    return tuple(snap_number(x, precision) for x in point)
+
+
+def snap_number(number, precision=2):
+    return Decimal(str(round(number, precision)))
 
 
 def layer(facetlist, depth):
@@ -40,80 +45,86 @@ def layer(facetlist, depth):
     linelist = []
 
     for facet in facetlist:
+        if facet != []:
+            # Find whether the facet intersects the slice
+            touch = [0, 0, 0]
+            above = [0, 0, 0]
+            below = [0, 0, 0]
+            for i, point in enumerate(facet[1:]):
+                if point[2] == depth:
+                    touch[i] = 1
+                elif point[2] > depth:
+                    above[i] = 1
+                elif point[2] < depth:
+                    below[i] = 1
+            logging.debug("Above: %d\tTouching: %d\tBelow: %d", sum(above), sum(touch), sum(below))
 
-        # Find whether the facet intersects the slice
-        touch = [0, 0, 0]
-        above = [0, 0, 0]
-        below = [0, 0, 0]
-        for i, point in enumerate(facet[1:]):
-            if point[2] == depth:
-                touch[i] = 1
-            elif point[2] > depth:
-                above[i] = 1
-            elif point[2] < depth:
-                below[i] = 1
-        logging.debug("Above: %d\tTouching: %d\tBelow: %d", sum(above), sum(touch), sum(below))
+            # Intersection mode for debugging
+            mode = 0
+            # Find intersections:
+            coords = [facet.pop(0)]
+            if (sum(above) == 3) or (sum(below) == 3):  # points are all above or all below
+                logging.debug("Facet does not intersect plane")
 
-        # Intersection mode for debugging
-        mode = 0
-        # Find intersections:
-        coords = [facet.pop(0)]
-        if (sum(above) == 3) or (sum(below) == 3):  # points are all above or all below
-            logging.debug("Facet does not intersect plane")
+            else:
+                logging.debug("Facet intersects plane")
+                if sum(touch) == 3:  # MODE 5
+                    mode = 5
+                    # all on plane
+                    coords.append(facet[1:])
 
-        else:
-            logging.debug("Facet intersects plane")
-            if sum(touch) == 3:  # MODE 5
-                mode = 5
-                # all on plane
-                coords.append(facet[1:])
+                elif sum(touch) == 1:
+                    if sum(above) == 1 and sum(below) == 1:  # MODE 2
+                        mode = 2
+                        # need to find one intersection
+                        linepoints = facet[:]
+                        coords.append(linepoints.pop(touch.index(1))[0:2])
+                        coords.append(intersect(linepoints, depth))
 
-            elif sum(touch) == 1:
-                if sum(above) == 1 and sum(below) == 1:  # MODE 2
-                    mode = 2
-                    # need to find one intersection
-                    linepoints = facet[:]
-                    coords.append(linepoints.pop(touch.index(1))[0:2])
-                    coords.append(intersect(linepoints, depth))
+                    elif sum(above) == 0 or sum(below) == 0:  # MODE 3
+                        mode = 3
+                        coords.append(tuple(facet[i][0:2]))
+                        # already done this point as only one intersection!
+                        coords.append(coords[0])
 
-                elif sum(above) == 0 or sum(below) == 0:  # MODE 3
-                    mode = 3
-                    coords.append(tuple(facet[i][0:2]))
-                    # already done this point as only one intersection!
-                    coords.append(coords[0])
+                elif sum(touch) == 2:  # MODE 4
+                    mode = 4
+                    facet.pop(touch.index(0))
+                    coords.extend([tuple(facet[0][0:2]), tuple(facet[1][0:2])])
 
-            elif sum(touch) == 2:  # MODE 4
-                mode = 4
-                facet.pop(touch.index(0))
-                coords.extend([tuple(facet[0][0:2]), tuple(facet[1][0:2])])
+                elif sum(above) == 2 or sum(below) == 2:  # MODE 1
+                    mode = 1
 
-            elif sum(above) == 2 or sum(below) == 2:  # MODE 1
-                mode = 1
-                if sum(above) == 2:
-                    pair = above[:]
-                else:
-                    pair = below[:]
+                    if sum(above) == 2:
+                        pair = above[:]
+                    else:
+                        pair = below[:]
 
-                linepoints = facet[:]
-                linepoints.pop(pair.index(1))
+                    print(len(facet))
+                    if len(facet) == 3:
+                        linepoints = facet[:]
+                        linepoints.pop(pair.index(1))
 
-                coords.append(intersect(linepoints, depth))
+                        print("Intersect:", len(linepoints))
 
-                linepoints = facet[:]
-                linepoints.reverse()
-                pairReversed = pair[:]
-                pairReversed.reverse()
-                linepoints.pop(pairReversed.index(1))
+                        coords.append(intersect(linepoints, depth))
 
-                coords.append(intersect(linepoints, depth))
+                        linepoints = facet[:]
+                        linepoints.reverse()
+                        pairReversed = pair[:]
+                        pairReversed.reverse()
 
-        logging.debug("Facet intersects at %s", str(coords))
+                        linepoints.pop(pairReversed.index(1))
 
-        if len(coords) != 3:
-            pass
-            # print("Invalid number of line points:", coords, "\t Mode:", mode)
-        if mode == 1 or mode == 2 or mode == 4:
-            linelist.append(coords)
+                        coords.append(intersect(linepoints, depth))
+
+            logging.debug("Facet intersects at %s", str(coords))
+
+            if len(coords) != 3:
+                pass
+                # print("Invalid number of line points:", coords, "\t Mode:", mode)
+            if mode == 1 or mode == 2 or mode == 4:
+                linelist.append(coords)
 
     print("Found", len(linelist), "lines.")
     return linelist

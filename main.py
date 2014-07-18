@@ -9,33 +9,45 @@ from Path import perimeter
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.WARNING)
 
-loaded = stl.load("Parts\\2cm Cube Binary.STL")
+loaded = stl.load("Parts\\Conjoined 1 Face.STL")
 print("Found", len(loaded), "facets")
 print("Loaded: ", loaded)
 
 snapped = slice.snap(loaded)
 print("Snapped:", [snap[1:] for snap in snapped])
 
-sliced = slice.snap(slice.layer(snapped[:], Decimal(1)))
-print("Sliced: ", sliced)
+filename = "test.csv"
+export.csv_header(filename)
 
-islands = sort.chop(sliced[:])
-print("Islands:", islands)
+for z in range(0, 1):
+    z = slice.snap_number(z/10)
+    print("Snapped:", [snap[1:] for snap in snapped])
 
-graph = plotter.graph()
+    sliced = slice.snap(slice.layer(snapped[:], z))
+    print("Slicing at", z, sliced)
 
-#plotter.points(graph, sliced, 6, "purple")
+    if len(sliced) > 0:
+        islands = sort.chop(sliced[:])
+        print("Islands:", islands)
 
-for island in islands:
-    island = sort.clockwise(island)
-    export.csv(island, "test.csv")
+        graph = plotter.graph()
 
-    plotter.plot(graph, sort.splice(island, 0))
+        #plotter.points(graph, sliced, 6, "purple")
+        #plotter.plot(graph, sliced)
 
-    offset = perimeter.offset(island, 1)
-    #plotter.plot(graph, offset)
 
-    trimmed = perimeter.trim(offset)
-    plotter.plot(graph, trimmed)
+        for i, island in enumerate(islands):
+            island = slice.snap(sort.clockwise(island))
+            islands[i] = island
 
-graph.mainloop()
+            plotter.plot(graph, sort.splice(island, 1))
+
+            offset = perimeter.offset(island, 1)
+            #plotter.plot(graph, offset)
+
+            trimmed = perimeter.trim(offset)
+            plotter.plot(graph, trimmed)
+
+        export.csv_islands(filename, islands, z)
+
+    graph.mainloop()
