@@ -44,13 +44,16 @@ def layer(facetlist, depth):
 
     linelist = []
 
-    for facet in facetlist:
-        if facet != []:
+    for facet in facetlist[:]:
+        facet = facet[:]
+        if facet:
+            coords = [facet.pop(0)]
+
             # Find whether the facet intersects the slice
             touch = [0, 0, 0]
             above = [0, 0, 0]
             below = [0, 0, 0]
-            for i, point in enumerate(facet[1:]):
+            for i, point in enumerate(facet[:]):
                 if point[2] == depth:
                     touch[i] = 1
                 elif point[2] > depth:
@@ -62,11 +65,12 @@ def layer(facetlist, depth):
             # Intersection mode for debugging
             mode = 0
             # Find intersections:
-            coords = [facet.pop(0)]
             if (sum(above) == 3) or (sum(below) == 3):  # points are all above or all below
                 logging.debug("Facet does not intersect plane")
 
             else:
+                print("Facet:", facet)
+
                 logging.debug("Facet intersects plane")
                 if sum(touch) == 3:  # MODE 5
                     mode = 5
@@ -96,27 +100,23 @@ def layer(facetlist, depth):
                     mode = 1
 
                     if sum(above) == 2:
-                        pair = above[:]
+                        pair = above
                     else:
-                        pair = below[:]
+                        pair = below
 
-                    print(len(facet))
-                    if len(facet) == 3:
-                        linepoints = facet[:]
-                        linepoints.pop(pair.index(1))
+                    print("Pair:", pair)
+                    index = pair.index(0)
+                    print(index)
+                    print(facet)
+                    double = facet[:]
+                    single = double.pop(pair.index(0))
 
-                        print("Intersect:", len(linepoints))
+                    #print("Single:", single)
+                    #print("Double:", double)
 
-                        coords.append(intersect(linepoints, depth))
+                    coords.append(intersect([single, double[0]], depth))
+                    coords.append(intersect([single, double[1]], depth))
 
-                        linepoints = facet[:]
-                        linepoints.reverse()
-                        pairReversed = pair[:]
-                        pairReversed.reverse()
-
-                        linepoints.pop(pairReversed.index(1))
-
-                        coords.append(intersect(linepoints, depth))
 
             logging.debug("Facet intersects at %s", str(coords))
 

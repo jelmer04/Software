@@ -7,21 +7,25 @@ from Output import export
 from Output import plotter
 from Path import perimeter
 
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.WARNING)
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 
-loaded = stl.load("Parts\\Conjoined 1 Face.STL")
+loaded = stl.load("Parts\\Graham\\Pyramid02_with_internal_rogue_triangle.stl")
 print("Found", len(loaded), "facets")
 print("Loaded: ", loaded)
 
 snapped = slice.snap(loaded)
-print("Snapped:", [snap[1:] for snap in snapped])
+print("Snapped:", snapped)
 
-filename = "test.csv"
+filename = "Parts\\Graham\\Pyramid02.csv"
 export.csv_header(filename)
 
-for z in range(0, 1):
-    z = slice.snap_number(z/10)
-    print("Snapped:", [snap[1:] for snap in snapped])
+thickness = 0.5
+height = 5
+
+for z in range(0, int(height/thickness) + 1):
+    z = Decimal(z * thickness)
+
+    print("Snapped:", snapped)
 
     sliced = slice.snap(slice.layer(snapped[:], z))
     print("Slicing at", z, sliced)
@@ -37,17 +41,20 @@ for z in range(0, 1):
 
 
         for i, island in enumerate(islands):
-            island = slice.snap(sort.clockwise(island))
+            island = sort.clockwise(island)
             islands[i] = island
 
             plotter.plot(graph, sort.splice(island, 1))
 
-            offset = perimeter.offset(island, 1)
+            #offset = perimeter.offset(island, 1)
             #plotter.plot(graph, offset)
 
-            trimmed = perimeter.trim(offset)
-            plotter.plot(graph, trimmed)
+            #trimmed = perimeter.trim(offset)
+            #plotter.plot(graph, trimmed)
 
         export.csv_islands(filename, islands, z)
 
-    graph.mainloop()
+        graph.mainloop()
+    else:
+        print("Didn't find any intersections")
+

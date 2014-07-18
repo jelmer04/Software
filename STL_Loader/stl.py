@@ -156,8 +156,9 @@ def load_binary(filename):
         # List of points which make up each facet
         facetlist = []
         # Read the 80 byte ASCII header
-        header = struct.unpack("80s", file.read(80))[0].decode("utf-8").rstrip()
-        logging.debug("File Header: %s", header)
+        #header = struct.unpack("80s", file.read(80))[0].decode("utf-8").rstrip()
+        #logging.debug("File Header: %s", header)
+        file.seek(80)
         # Number of facets to find
         facetCount = struct.unpack("<I", file.read(4))[0]
 
@@ -167,6 +168,7 @@ def load_binary(filename):
             normal = ()
             for i in range(3):
                 normal += (struct.unpack("<f", file.read(4))[0], )
+            logging.debug("Normal is %s", str(normal))
 
             # Find the coords:
             coords = [normal]
@@ -175,12 +177,14 @@ def load_binary(filename):
                 for j in range(3):
                     point += (struct.unpack("<f", file.read(4))[0], )
                 coords.append(point)
+            logging.debug("Points are %s", str(coords))
 
             # Read the attribute byte count
             attribute = struct.unpack("<H", file.read(2))[0]
             if attribute != 0:
                 logging.warning("File bad - attribute not zero")
-                return 1
+                # Graham's files were non-zero?
+                #return 1
             # Got the coordinates
             logging.debug("Facet loaded with normal %s\n\tand coords %s", str(normal), str(coords))
             facetlist.append(coords)

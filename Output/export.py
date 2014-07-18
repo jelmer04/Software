@@ -9,7 +9,7 @@ def csv_islands(filename, islands, z):
     with open(filename, "a") as file:
         for i, island in enumerate(islands):
             for j, line in enumerate(island):
-                write = "{:d},{:d},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},\n".format(i, j, line[1][0], line[1][1], line[2][0], line[2][1],z)
+                write = "{:d},{:d},{},{},{},{},{},\n".format(i, j, line[1][0], line[1][1], line[2][0], line[2][1],z)
                 file.write(write)
                 #print(line)
                 #print(write)
