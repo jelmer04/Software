@@ -6,23 +6,28 @@ from Slicer import sort
 from Output import export
 from Output import plotter
 from Path import perimeter
+import filler
 
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
-loaded = stl.load("Parts\\Graham\\Pyramid02_with_internal_rogue_triangle.stl")
+import os, sys
+sys.path.insert(0, os.getcwd())
+
+loaded = stl.load("Parts\\Conjoined.STL")
 print("Found", len(loaded), "facets")
 print("Loaded: ", loaded)
 
 snapped = slice.snap(loaded)
 print("Snapped:", snapped)
 
-filename = "Parts\\Graham\\Pyramid02.csv"
+filename = "Parts\\test.csv"
 export.csv_header(filename)
 
-thickness = 0.5
-height = 5
+thickness = 1
+height = 2
+start = 2
 
-for z in range(0, int(height/thickness) + 1):
+for z in range(start, int(height/thickness) + 1):
     z = Decimal(z * thickness)
 
     print("Snapped:", snapped)
@@ -39,18 +44,19 @@ for z in range(0, int(height/thickness) + 1):
         #plotter.points(graph, sliced, 6, "purple")
         #plotter.plot(graph, sliced)
 
-
         for i, island in enumerate(islands):
-            island = sort.clockwise(island)
+            island = sort.merge(sort.clockwise(island))
             islands[i] = island
 
-            plotter.plot(graph, sort.splice(island, 1))
+            plotter.plot(graph, sort.splice(island, 0))
 
-            #offset = perimeter.offset(island, 1)
+            offset = perimeter.offset(island, Decimal(0.5))
             #plotter.plot(graph, offset)
 
-            #trimmed = perimeter.trim(offset)
-            #plotter.plot(graph, trimmed)
+            trimmed = perimeter.trim(offset)
+            plotter.plot(graph, trimmed, 2, "red")
+
+            plotter.plot(graph, filler.fill(trimmed, 0.5), 4, "blue", "black")
 
         export.csv_islands(filename, islands, z)
 

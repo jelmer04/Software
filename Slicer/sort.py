@@ -163,3 +163,20 @@ def splice(linelist, index):
     output.extend(linelist[:index])
     return output
 # End of function splice()
+
+
+def merge(linelist):
+    """
+    Merges all adjacent coincident lines
+
+    :param linelist:    list of lines to merge
+    :return:            list of lines, merged
+    """
+    i = 0
+    while i < len(linelist):
+        if linelist[i-1][0] == linelist[i][0]:
+            # New line is normal, start of previous line, end of current line
+            linelist[i] = (linelist[i][0], linelist[i-1][1], linelist[i][2])
+            linelist.pop(i-1)
+        i+=1
+    return linelist
