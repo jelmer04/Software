@@ -1,8 +1,10 @@
 from Path import perimeter
 from Slicer import slice
+import math
+from decimal import Decimal
 
 
-def fill(linelist, spacing=0.5, short=0.1):
+def fill(linelist, spacing=0.5, angle=0, short=0.1):
     """
     Fill between the lines of linelist in the y direction, at a spacing of 0.5 along the x direction
 
@@ -11,6 +13,9 @@ def fill(linelist, spacing=0.5, short=0.1):
     :return:            Fill path
     """
     sub = lambda x, y: ((x[0] - y[0]), (x[1] - y[1]))
+
+    if angle != 0:
+        linelist = rotate(linelist, angle)
 
     # Find the limits
     xmax = linelist[0][1][0]
@@ -64,4 +69,27 @@ def fill(linelist, spacing=0.5, short=0.1):
                             filllist.append([(), filllist[-1][2], line[1]])
                         filllist.append(line)
                 last = intersection
-    return filllist
+
+    if angle != 0:
+        pass
+        filllist = rotate(filllist, -angle)
+    return slice.snap(filllist)
+
+
+def rotate(linelist, angle):
+    point = lambda p, s, c: (p[0] * c - p[1] * s, p[0] * s + p[1] * c)
+
+    angle = math.radians(angle)
+    sin = Decimal(math.sin(angle))
+    cos = Decimal(math.cos(angle))
+    rotated = []
+    for line in linelist:
+        newline = []
+        for l in line:
+            if len(l) >= 2:
+                newline.append(point(l, sin, cos))
+            else:
+                newline.append(tuple())
+        rotated.append(newline)
+
+    return rotated

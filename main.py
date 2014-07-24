@@ -13,7 +13,7 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 import os, sys
 sys.path.insert(0, os.getcwd())
 
-loaded = stl.load("Parts\\Conjoined.STL")
+loaded = stl.load("Parts\\2cm Nonagon.stl")
 print("Found", len(loaded), "facets")
 print("Loaded: ", loaded)
 
@@ -23,9 +23,9 @@ print("Snapped:", snapped)
 filename = "Parts\\test.csv"
 export.csv_header(filename)
 
-thickness = 1
-height = 2
-start = 2
+thickness = 4
+height = 0
+start = 0
 
 for z in range(start, int(height/thickness) + 1):
     z = Decimal(z * thickness)
@@ -50,15 +50,15 @@ for z in range(start, int(height/thickness) + 1):
 
             plotter.plot(graph, sort.splice(island, 0))
 
-            offset = perimeter.offset(island, Decimal(0.5))
+            offset = perimeter.offset(island, Decimal(1))
             #plotter.plot(graph, offset)
 
             trimmed = perimeter.trim(offset)
-            plotter.plot(graph, trimmed, 2, "red")
+            #plotter.plot(graph, trimmed, 2, "red")
 
-            plotter.plot(graph, filler.fill(trimmed, 0.5), 4, "blue", "black")
+            plotter.plot(graph, filler.fill(trimmed, 0.5, 15), 4, "blue", "black")
 
-        export.csv_islands(filename, islands, z)
+        #export.csv_islands(filename, islands, z)
 
         graph.mainloop()
     else:
