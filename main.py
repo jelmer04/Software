@@ -13,7 +13,7 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 import os, sys
 sys.path.insert(0, os.getcwd())
 
-loaded = stl.load("Parts\\2cm Nonagon.stl")
+loaded = stl.load("Parts\\2cm Donut Square.STL")
 print("Found", len(loaded), "facets")
 print("Loaded: ", loaded)
 
@@ -23,9 +23,9 @@ print("Snapped:", snapped)
 filename = "Parts\\test.csv"
 export.csv_header(filename)
 
-thickness = 4
-height = 0
-start = 0
+thickness = 1
+height = 1
+start = 1
 
 for z in range(start, int(height/thickness) + 1):
     z = Decimal(z * thickness)
@@ -44,6 +44,8 @@ for z in range(start, int(height/thickness) + 1):
         #plotter.points(graph, sliced, 6, "purple")
         #plotter.plot(graph, sliced)
 
+        filllayer = []
+
         for i, island in enumerate(islands):
             island = sort.merge(sort.clockwise(island))
             islands[i] = island
@@ -54,11 +56,15 @@ for z in range(start, int(height/thickness) + 1):
             #plotter.plot(graph, offset)
 
             trimmed = perimeter.trim(offset)
-            #plotter.plot(graph, trimmed, 2, "red")
+            plotter.plot(graph, trimmed, 0, "red")
 
-            plotter.plot(graph, filler.fill(trimmed, 0.5, 15), 4, "blue", "black")
+            filllayer.extend(trimmed)
+
+            #plotter.plot(graph, filler.fill(trimmed, 0.5, 90), 4, "blue", "black")
 
         #export.csv_islands(filename, islands, z)
+
+        plotter.plot(graph, filler.fill(filllayer, 0.5, 30), 4, "blue", "black")
 
         graph.mainloop()
     else:

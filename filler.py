@@ -39,6 +39,7 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
     flip = False
     for segment in mesh:
         intersections = []
+        segmentfill = []
         for i, line in enumerate(linelist):
             # If the mesh segment is within the current line's x limits, find the intersection
             if (line[1][0] < segment < line[2][0]) or (line[1][0] > segment > line[2][0]):
@@ -55,21 +56,28 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
                 intersections.reverse()
             flip = not flip
 
+            print("Segment intersects at:", segment, intersections)
+
             # Find the lines which are inside the perimeter (normals are opposite sign)
             last = intersections.pop(0)
             while len(intersections) > 0:
                 intersection = intersections.pop(0)
-                if intersection[0][1] * last[0][1] < 0:
+                print(last[0][1], intersection[0][1])
+                if (last[0][1] > 0 > intersection[0][1] and not flip) or (last[0][1] < 0 < intersection[0][1] and flip):
+
                     # Generate the infill line
                     line = [(), last[1], intersection[1]]
 
                     # Short fill filter
                     if abs(line[1][1] - line[2][1]) > short:
-                        if len(filllist) > 0:
-                            filllist.append([(), filllist[-1][2], line[1]])
-                        filllist.append(line)
-                last = intersection
+                        segmentfill.append(line)
 
+                last = intersection
+        if len(segmentfill) > 0:
+            if len(filllist) > 0:
+                # Join segments together
+                filllist.append([(), filllist[-1][2], segmentfill[0][1]])
+            filllist.extend(segmentfill)
     if angle != 0:
         pass
         filllist = rotate(filllist, -angle)
