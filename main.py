@@ -11,10 +11,14 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import os, sys
 sys.path.insert(0, os.getcwd())
 
 loaded = stl.load("Parts\\Graham\\Pyramid01.stl")
+=======
+loaded = stl.load("Parts\\Graham\\Pyramid02_with_internal_rogue_triangle.stl")
+>>>>>>> parent of 0aeef34... Filling along x, merges coincident lines
 =======
 loaded = stl.load("Parts\\Graham\\Pyramid02_with_internal_rogue_triangle.stl")
 >>>>>>> parent of 0aeef34... Filling along x, merges coincident lines
@@ -33,8 +37,12 @@ export.csv_header(filename)
 thickness = 0.5
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 height = 3
 start = 0
+=======
+height = 5
+>>>>>>> parent of 0aeef34... Filling along x, merges coincident lines
 =======
 height = 5
 >>>>>>> parent of 0aeef34... Filling along x, merges coincident lines
@@ -69,6 +77,7 @@ for z in range(0, int(height/thickness) + 1):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             offset = slice.snap(perimeter.offset(island, Decimal(1)))
             print("Offset to:", offset)
 
@@ -77,6 +86,13 @@ for z in range(0, int(height/thickness) + 1):
 
             plotter.plot(graph, filler.fill(trimmed, (0.1, 0)), 4, "blue", "black")
 
+=======
+            #offset = perimeter.offset(island, 1)
+            #plotter.plot(graph, offset)
+
+            #trimmed = perimeter.trim(offset)
+            #plotter.plot(graph, trimmed)
+>>>>>>> parent of 0aeef34... Filling along x, merges coincident lines
 =======
             #offset = perimeter.offset(island, 1)
             #plotter.plot(graph, offset)
