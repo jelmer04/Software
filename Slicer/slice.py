@@ -12,8 +12,6 @@ def snap(facetlist, precision=2):
     """
     snaplist = []
 
-    context = Context(prec=precision, rounding=ROUND_HALF_UP)
-
     for facet in facetlist:
         snapped = []
         for f in facet:

@@ -13,7 +13,7 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 import os, sys
 sys.path.insert(0, os.getcwd())
 
-loaded = stl.load("Parts\\Conjoined.STL")
+loaded = stl.load("Parts\\Graham\\Pyramid01.stl")
 print("Found", len(loaded), "facets")
 print("Loaded: ", loaded)
 
@@ -23,9 +23,9 @@ print("Snapped:", snapped)
 filename = "Parts\\test.csv"
 export.csv_header(filename)
 
-thickness = 1
-height = 2
-start = 2
+thickness = 0.5
+height = 3
+start = 0
 
 for z in range(start, int(height/thickness) + 1):
     z = Decimal(z * thickness)
@@ -47,16 +47,18 @@ for z in range(start, int(height/thickness) + 1):
         for i, island in enumerate(islands):
             island = sort.merge(sort.clockwise(island))
             islands[i] = island
+            print("Island:", island)
 
             plotter.plot(graph, sort.splice(island, 0))
 
-            offset = perimeter.offset(island, Decimal(0.5))
-            #plotter.plot(graph, offset)
+            offset = slice.snap(perimeter.offset(island, Decimal(1)))
+            print("Offset to:", offset)
 
             trimmed = perimeter.trim(offset)
             plotter.plot(graph, trimmed, 2, "red")
 
-            plotter.plot(graph, filler.fill(trimmed, 0.5), 4, "blue", "black")
+            plotter.plot(graph, filler.fill(trimmed, (0.1, 0)), 4, "blue", "black")
+
 
         export.csv_islands(filename, islands, z)
 

@@ -1,14 +1,16 @@
 from decimal import Decimal
 
-def offset(linelist, offset):
+def offset(linelist, distance):
 
     for i, (n, a, b) in enumerate(linelist):
-        mag = magnitude(n)
-        if mag != 1:
-            n = (z / mag for z in n)
+#        mag = magnitude(n)
+#        if mag != 1:
+#            n = (z / mag for z in n)
 
-        a = tuple(x - y * offset for (x, y) in zip(a, n))
-        b = tuple(x - y * offset for (x, y) in zip(b, n))
+        a = tuple((a[0] - n[0] * distance, a[1] - n[1] * distance))
+        b = tuple((b[0] - n[0] * distance, b[1] - n[1] * distance))
+
+        print("New line:", a, b)
         linelist[i] = [n, a, b]
 
     return list(linelist)
@@ -19,8 +21,9 @@ def trim(linelist):
 
     for i, line in enumerate(linelist):
         last = linelist[i-1]
-        #print("Trimming", line[1:], last[1:])
-        #print("Intersect:", line[1], sub(line[2], line[1]), last[1], sub(last[2], last[1]))
+        print("Trimming", line[1:], last[1:])
+
+        print("Intersect:", line[1], sub(line[2], line[1]), last[1], sub(last[2], last[1]))
         intersection = intersect(line[1], sub(line[2], line[1]), last[2], sub(last[1], last[2]))
 
         #print("Intersection at", intersection)
