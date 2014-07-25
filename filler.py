@@ -74,14 +74,27 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
 
                 last = intersection
         if len(segmentfill) > 0:
-            if len(filllist) > 0:
-                # Join segments together
-                filllist.append([(), filllist[-1][2], segmentfill[0][1]])
-            filllist.extend(segmentfill)
+            #print("Segment:", segmentfill)
+            #print("Fill List:", len(filllist), filllist)
+            if len(segmentfill) > 0 and len(filllist) > 0:
+                if len(filllist[-1]) > 0:
+                    # Join segments together
+                    filllist[-1].append([(), filllist[-1][-1][2], segmentfill[0][1]])
+                    if len(segmentfill) > 1:
+                        filllist[-1].append(segmentfill.pop(0))
+                        filllist.append([])
+                    filllist[-1].extend(segmentfill)
+                else:
+                    filllist.append(segmentfill)
+            else:
+                filllist.append(segmentfill)
+        else:
+            #filllist.append([])
+            pass
     if angle != 0:
         pass
         filllist = rotate(filllist, -angle)
-    return slice.snap(filllist)
+    return list(slice.snap(fill) for fill in filllist)
 
 
 def rotate(linelist, angle):
