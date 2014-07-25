@@ -150,6 +150,20 @@ def clockwise(linelist):
 # End of function clockwise()
 
 
+def isclockwise(line):
+        sub = lambda a, b: ((a[0] - b[0]), (a[1] - b[1]))
+
+        direction = sub(line[1], line[2])
+        normal = (direction[1], -direction[0])
+
+        #print(normal, line[0])
+        #print(normal[0] * line[0][0], normal[1] * line[0][1])
+        if normal[0] * line[0][0] >= 0 and normal[1] * line[0][1] >= 0:
+            return True
+        else:
+            return False
+
+
 def splice(linelist, index):
     """
     Splice a list of lines at specified index

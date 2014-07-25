@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from STL_Loader import stl
+from Load import stl
 from Slicer import slice
 from Slicer import sort
 from Output import export

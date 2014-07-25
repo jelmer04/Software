@@ -56,13 +56,13 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
                 intersections.reverse()
             flip = not flip
 
-            print("Segment intersects at:", segment, intersections)
+            #print("Segment intersects at:", segment, intersections)
 
             # Find the lines which are inside the perimeter (normals are opposite sign)
             last = intersections.pop(0)
             while len(intersections) > 0:
                 intersection = intersections.pop(0)
-                print(last[0][1], intersection[0][1])
+                #print(last[0][1], intersection[0][1])
                 if (last[0][1] > 0 > intersection[0][1] and not flip) or (last[0][1] < 0 < intersection[0][1] and flip):
 
                     # Generate the infill line
