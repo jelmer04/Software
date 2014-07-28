@@ -15,6 +15,7 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
     sub = lambda x, y: ((x[0] - y[0]), (x[1] - y[1]))
 
     if angle != 0:
+        print("Rotating!")
         linelist = rotate(linelist, angle)
 
     # Find the limits
@@ -93,12 +94,14 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
             pass
     if angle != 0:
         pass
-        filllist = rotate(filllist, -angle)
+        print("Rotating back!")
+        for i, f in enumerate(filllist):
+            filllist[i] = rotate(f, -angle)
     return list(slice.snap(fill) for fill in filllist)
 
 
 def rotate(linelist, angle):
-    point = lambda p, s, c: (p[0] * c - p[1] * s, p[0] * s + p[1] * c)
+    #point = lambda p, s, c: (p[0] * c - p[1] * s, p[0] * s + p[1] * c)
 
     angle = math.radians(angle)
     sin = Decimal(math.sin(angle))
@@ -108,9 +111,14 @@ def rotate(linelist, angle):
         newline = []
         for l in line:
             if len(l) >= 2:
-                newline.append(point(l, sin, cos))
+                newline.append(rotate_point(l, sin, cos))
             else:
                 newline.append(tuple())
         rotated.append(newline)
 
     return rotated
+
+
+def rotate_point(p, s, c):
+    #print(p, s, c)
+    return (p[0] * c - p[1] * s, p[0] * s + p[1] * c)

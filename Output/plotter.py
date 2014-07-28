@@ -1,7 +1,7 @@
 from tkinter import *
 
 
-def graph():
+def graph(title=""):
     """
     Creates a graph window
 
@@ -10,7 +10,9 @@ def graph():
     scale = 40
 
     root = Tk()
-    root.title("Plot of points")
+    root.title("Plot: {}".format(title))
+    root.attributes('-alpha', 0.8)
+    root.geometry('+10+10')
 
     canvas = Canvas(root, width=820, height=820, bg="white")
     canvas.pack()

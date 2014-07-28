@@ -41,8 +41,26 @@ def intersect(posa, dira, posb, dirb):
             or (posa == posb):
         return posb
 
-    k = ((posa[0] * dirb[1]) - (posa[1] * dirb[0]) + (posb[1] * dirb[0]) - (posb[0] * dirb[1])) \
-        / ((dira[1] * dirb[0]) - (dira[0] * dirb[1]))
+    k = ((posa[0] * dirb[1]) - (posa[1] * dirb[0]) + (posb[1] * dirb[0]) - (posb[0] * dirb[1]))
+    l = ((dira[1] * dirb[0]) - (dira[0] * dirb[1]))
+
+    if abs(k) > 1000000:
+        k = int(k)
+
+    if abs(l) > 1000000:
+        l = int(l)
+
+    #print("K =", abs(round(k, 3)), "L =", abs(round(l, 3)))
+
+    if abs(round(l, 3)) == 0:
+        #print("L is zero")
+        return posb
+    if abs(round(k, 3)) == 0:
+        #print("K is zero")
+        return posb
+    else:
+        #print("K and L both non-zero")
+        k = Decimal(k / l)
 
     point = tuple (k * a for a in dira)
     point = tuple (p + a for (p, a) in zip(point, posa))

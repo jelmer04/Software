@@ -26,6 +26,7 @@ snapped = slice.snap(loaded)
 # print("Snapped:", snapped)
 
 nozzle = parameters.get(params, "nozzle_dia")
+perim_count = int(parameters.get(params, "perim_count"))
 
 output_file = parameters.get(params, "output_file")
 export.newfile(output_file)
@@ -35,11 +36,14 @@ stop = parameters.get(params, "slice_stop")
 step = parameters.get(params, "slice_step")
 zrange = int((stop - start) / step) + 1
 
+graph = []
+
 for z in range(0, zrange):
     z = Decimal(z * step + start)
 
     export.layer(output_file, z)
 
+    print("Slicing at", z)
     sliced = slice.snap(slice.layer(snapped[:], z))
     #print("Slicing at", z, sliced)
 
@@ -47,7 +51,8 @@ for z in range(0, zrange):
         islands = sort.chop(sliced[:])
         #print("Islands:", islands)
 
-        graph = plotter.graph()
+        g = plotter.graph("Z = {}".format(z))
+        graph.append(g)
 
         #plotter.points(graph, sliced, 6, "purple")
         #plotter.plot(graph, sliced)
@@ -58,30 +63,41 @@ for z in range(0, zrange):
             island = sort.merge(sort.clockwise(island))
             islands[i] = island
 
-            plotter.plot(graph, island, 0, "red")
+            plotter.plot(g, island, 0, "red")
 
-            trimmed = perimeter.trim(perimeter.offset(island, nozzle / 2))
-            for p in range(int(parameters.get(params, "perim_count"))):
-                if not sort.isclockwise(trimmed[0]):
-                    break
-                plotter.plot(graph, trimmed)
-                export.path(output_file, trimmed)
+            if len(island) > 0:
+                for p in range(0, perim_count):
 
-                trimmed = perimeter.trim(perimeter.offset(trimmed, nozzle))
+                    trimmed = perimeter.offset(island, nozzle * (i + Decimal(0.5)))
+                    #trimmed = perimeter.trim(trimmed)
 
-            plotter.plot(graph, trimmed, 0, "red")
-            filllayer.extend(trimmed)
+                    if not sort.isclockwise(trimmed[-1]):
+                        print("Offset too great")
+                        fillarea = False
+                    else:
+                        fillarea = True
+                        plotter.plot(g, trimmed)
+                        export.path(output_file, trimmed)
 
 
-        #export.csv_islands(filename, islands, z)
-        fill = filler.fill(filllayer, parameters.get(params, "fill_spacing"), parameters.get(params, "fill_angle"))
+                trimmed = perimeter.offset(island, nozzle * (perim_count))
+                #trimmed = perimeter.trim(trimmed)
 
-        for f in fill:
-            plotter.plot(graph, f, 4, "blue", "black")
-            export.path(output_file, f)
+                plotter.plot(g, trimmed, 0, "red")
+                filllayer.extend(trimmed)
+
+
+            #export.csv_islands(filename, islands, z)
+            if fillarea:
+                fill = filler.fill(filllayer, parameters.get(params, "fill_spacing"), parameters.get(params, "fill_angle"))
+
+                for f in fill:
+                    plotter.plot(g, f, 4, "blue", "black")
+                    export.path(output_file, f)
 
 
     else:
         print("Didn't find any intersections")
 
-graph.mainloop()
+for g in graph:
+    g.mainloop()
