@@ -69,7 +69,7 @@ def layer(facetlist, depth):
                 logging.debug("Facet does not intersect plane")
 
             else:
-                print("Facet:", facet)
+                #print("Facet:", facet)
 
                 logging.debug("Facet intersects plane")
                 if sum(touch) == 3:  # MODE 5
@@ -104,10 +104,10 @@ def layer(facetlist, depth):
                     else:
                         pair = below
 
-                    print("Pair:", pair)
+                    #print("Pair:", pair)
                     index = pair.index(0)
-                    print(index)
-                    print(facet)
+                    #print(index)
+                    #print(facet)
                     double = facet[:]
                     single = double.pop(pair.index(0))
 

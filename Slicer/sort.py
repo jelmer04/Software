@@ -52,7 +52,7 @@ def chop(linelist):
 
     pointcounter = count_points(linelist)
 
-    print("Point Count:", pointcounter)
+    #print("Point Count:", pointcounter)
 
     # Find the triple-point coordinated
     extrapoints = []
@@ -62,7 +62,7 @@ def chop(linelist):
 
     # Remove the extra lines
     if len(extrapoints) > 0:
-        print("Extra Points:", extrapoints)
+        #print("Extra Points:", extrapoints)
         i = 0
         #for i, line in enumerate(linelist):
         while i < len(linelist):
@@ -78,7 +78,7 @@ def chop(linelist):
             else:
                 i += 1
 
-        print("Repaired Count:", count_points(linelist))
+        #print("Repaired Count:", count_points(linelist))
 
     islands = []
     while len(linelist) > 0:
@@ -150,18 +150,23 @@ def clockwise(linelist):
 # End of function clockwise()
 
 
-def isclockwise(line):
-        sub = lambda a, b: ((a[0] - b[0]), (a[1] - b[1]))
+def isclockwise(linelist):
+    sub = lambda a, b: ((a[0] - b[0]), (a[1] - b[1]))
 
+    clock = False
+
+    for line in linelist:
         direction = sub(line[1], line[2])
         normal = (direction[1], -direction[0])
 
         #print(normal, line[0])
         #print(normal[0] * line[0][0], normal[1] * line[0][1])
         if normal[0] * line[0][0] >= 0 and normal[1] * line[0][1] >= 0:
-            return True
+            clock = True
         else:
-            return False
+            pass
+
+    return clock
 
 
 def splice(linelist, index):
@@ -193,4 +198,20 @@ def merge(linelist):
             linelist[i] = (linelist[i][0], linelist[i-1][1], linelist[i][2])
             linelist.pop(i-1)
         i+=1
+    return linelist
+
+
+def short(linelist, length = 0.05):
+    mag = lambda A, B: sum((a - b) ** 2 for (a, b) in zip(A, B))
+    i = 0
+    while i < len(linelist):
+        line = linelist[i]
+        last = linelist[i-1]
+        if mag(line[2], last[1]) < length**2:
+
+            linelist.pop(i)
+            linelist[i-1][2] = line[2]
+        else:
+            i += 1
+
     return linelist

@@ -15,7 +15,7 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
     sub = lambda x, y: ((x[0] - y[0]), (x[1] - y[1]))
 
     if angle != 0:
-        print("Rotating!")
+        #print("Rotating!")
         linelist = rotate(linelist, angle)
 
     # Find the limits
@@ -32,8 +32,14 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
     # Generate the list of x lines to use as the infill mesh
     mesh = []
     for x in range(int(xmin * 100), int(xmax * 100) + 1, int(spacing * 100)):
+        ##### For debugging
+        #if x == int(xmin * 100) + 4 * int(spacing * 100):
+        #    break
+        #####
+
         x = slice.snap_number(x / 100)
         mesh.append(x)
+
 
     # Crop the mesh to the specified perimeter
     filllist = []
@@ -42,22 +48,29 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
         intersections = []
         segmentfill = []
         for i, line in enumerate(linelist):
+            # If the line is coincident with the mesh:
+            if line[1][0] == segment:
+                intersections.append([line[0], line[1]])
+            if line[2][0] == segment:
+                intersections.append([line[0], line[2]])
+
             # If the mesh segment is within the current line's x limits, find the intersection
             if (line[1][0] < segment < line[2][0]) or (line[1][0] > segment > line[2][0]):
                 intersections.append([line[0], tuple(slice.snap_number(x) for x in
                                            perimeter.intersect(line[1], sub(line[2], line[1]),
                                                                (segment, 0), (0, 1)))])
+
         # If the mesh segment has intersections with the perimeter:
         if len(intersections) > 0:
             # Sort the intersections into y-order
             intersections.sort(key=lambda x: x[1][1])
 
+            #print("Segment intersects at:", segment, tuple(i[1][1] for i in intersections))
+
             # Reverse alternate lines to achieve snaking pattern
             if flip:
                 intersections.reverse()
             flip = not flip
-
-            #print("Segment intersects at:", segment, intersections)
 
             # Find the lines which are inside the perimeter (normals are opposite sign)
             last = intersections.pop(0)
@@ -65,6 +78,8 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
                 intersection = intersections.pop(0)
                 #print(last[0][1], intersection[0][1])
                 if (last[0][1] > 0 > intersection[0][1] and not flip) or (last[0][1] < 0 < intersection[0][1] and flip):
+                        #and (ymin <= intersection[1][1] <= ymax and xmin <= intersection[1][0] <= xmax):
+
 
                     # Generate the infill line
                     line = [(), last[1], intersection[1]]
@@ -90,13 +105,14 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
             else:
                 filllist.append(segmentfill)
         else:
-            #filllist.append([])
+            filllist.append([])
             pass
     if angle != 0:
         pass
-        print("Rotating back!")
+        #print("Rotating back!")
         for i, f in enumerate(filllist):
             filllist[i] = rotate(f, -angle)
+            pass
     return list(slice.snap(fill) for fill in filllist)
 
 

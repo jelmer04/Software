@@ -1,4 +1,8 @@
+from decimal import Decimal
 from tkinter import *
+scale = 40
+margin = 10
+window = Decimal(0)
 
 
 def graph(title=""):
@@ -7,7 +11,6 @@ def graph(title=""):
 
     @return:    graph canvas
     """
-    scale = 40
 
     root = Tk()
     root.title("Plot: {}".format(title))
@@ -31,7 +34,7 @@ def graph(title=""):
 # End of function graph()
 
 
-def plot(canvas, linelist, radius=4, trace="black", marker="blue"):
+def plot(canvas, linelist, trace="black", marker="", radius=0):
     """
     Plot the lines on the specified canvas
 
@@ -42,12 +45,10 @@ def plot(canvas, linelist, radius=4, trace="black", marker="blue"):
     @param marker:      colour of marker
     @return:            none
     """
-    scale = 40
-    margin = 10
 
     for i, line in enumerate(linelist):
-        x = (scale * line[1][0] + margin, scale * line[2][0] + margin)
-        y = (800 - scale * line[1][1] + margin, 800 - scale * line[2][1] + margin)
+        x = (scale * line[1][0] + margin + ((window) * 800), scale * line[2][0] + margin + ((window) * 800))
+        y = (800 - scale * line[1][1] + margin+ ((-window) * 800), 800 - scale * line[2][1] + margin + ((-window) * 800))
 
         fill = ""
 
@@ -65,8 +66,12 @@ def plot(canvas, linelist, radius=4, trace="black", marker="blue"):
 
         canvas.create_oval(x[1] - radius, y[1] - radius, x[1] + radius, y[1] + radius, width=1, fill="",
                            outline=outline)
-
-        canvas.create_line(x[0], y[0], x[1], y[1], width=1, fill=trace, dash=1)
+        if trace.startswith("--"):
+            fill = trace
+            fill = fill.strip("-")
+            canvas.create_line(x[0], y[0], x[1], y[1], width=1, fill=fill, dash=1)
+        else:
+            canvas.create_line(x[0], y[0], x[1], y[1], width=1, fill=trace)
     return
 # End of function plot()
 
@@ -77,8 +82,8 @@ def points(canvas, linelist, radius=4, marker="blue"):
 
     print("Plotting:", [[x, y] for (n, x, y) in linelist])
     for i, line in enumerate(linelist):
-        x = (scale * line[1][0] + margin, scale * line[2][0] + margin)
-        y = (800 - scale * line[1][1] + margin, 800 - scale * line[2][1] + margin)
+        x = (scale * line[1][0] + margin + ((1-window) * 800), scale * line[2][0] + margin + ((1-window) * 800))
+        y = (800 - scale * line[1][1] + margin+ ((window) * 800), 800 - scale * line[2][1] + margin + ((window) * 800))
 
         canvas.create_oval(x[0] - radius, y[0] - radius, x[0] + radius, y[0] + radius, width=1, fill="",
                            outline=marker)
