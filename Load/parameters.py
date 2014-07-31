@@ -1,6 +1,6 @@
 from decimal import Decimal
 from tkinter import *
-from tkinter import ttk
+from tkinter import messagebox
 
 
 def nameslist():
@@ -57,13 +57,13 @@ def load(filename):
     for i, (param, name) in enumerate(zip(params, names)):
         if types(i) == "fx":
             if not check_file(param):
-                message("Error!", param+" does not exist!", ["OK"])
+                message("Error!", param+" does not exist!", True, ["OK"])
         elif types(i) == "fe":
             if check_file(param):
-                message("Error!", param+" already exists!", ["OK"])
+                message("Error!", param+" already exists!", True, ["OK"])
         elif types(i) == "fa":
             if check_file(param):
-                message("Warning!", param+" already exists, overwrite?", ["Yes", "No"])
+                message("Warning!", param+" already exists, overwrite?", False, ["Yes", "No"])
 
     print(tuple((n, p) for (n, p) in zip(names, params)))
     return params
@@ -88,37 +88,15 @@ def check_file(filename):
     return exists
 
 
-def message(title="Message", text="Text", buttontext=["No", "Yes"], result=[False, True]):
+def message(title="Message", text="Text", fatal=True, buttontext=["No", "Yes"], result=[False, True]):
+
+    print(text)
+    if fatal:
+        quit()
+    return
 
     root = Tk()
-    root.title(title)
+    root.wm_withdraw()
 
-    mainframe = ttk.Frame(root, padding="3 3 12 12")
-    mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
-    mainframe.columnconfigure(0, weight=1)
-    mainframe.rowconfigure(0, weight=1)
-
-    #feet = StringVar()
-    #meters = StringVar()
-
-    #feet_entry = ttk.Entry(mainframe, width=7, textvariable=feet)
-    #feet_entry.grid(column=2, row=1, sticky=(W, E))
-
-    ttk.Label(mainframe, text=text).grid(column=1, row=1, sticky=(W, E), columnspan=len(buttontext))
-
-    buttons = []
-    for b, button in enumerate(buttontext):
-        buttons.append(ttk.Button(mainframe, text=button).grid(column=b+1, row=2, sticky=W))
-
-    #ttk.Label(mainframe, text="feet").grid(column=3, row=1, sticky=W)
-    #ttk.Label(mainframe, text="is equivalent to").grid(column=1, row=2, sticky=E)
-    #ttk.Label(mainframe, text="meters").grid(column=3, row=2, sticky=W)
-
-    for child in mainframe.winfo_children(): child.grid_configure(padx=5, pady=5)
-
-    #buttons[0].focus()
-    #root.bind('<Return>')
-
-    root.mainloop()
-
+    messagebox.showinfo(title, text)
     return 0
