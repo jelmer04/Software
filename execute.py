@@ -96,10 +96,10 @@ def main():
 
                     trimmed = sort.short(slice.snap(perimeter.trim(offset)))
 
-                    #plotter.plot(g, trimmed, "orange", "", 2)
+                    plotter.plot(g, trimmed, "--red", "", 0)
 
                     filllayer.extend(trimmed)
-                break
+                #break
 
             #export.csv_islands(filename, islands, z)
             if fillarea:
