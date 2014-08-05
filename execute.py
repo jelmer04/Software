@@ -38,11 +38,12 @@ def main():
     step = parameters.get(params, "slice_step")
     zrange = int((stop - start) / step) + 1
 
+    slices = []
+    for z in range(0, zrange):
+        slices.append(Decimal(z * step + start))
 
     graph = []
-
-    for z in range(0, zrange):
-        z = Decimal(z * step + start)
+    for z in slices:
 
         export.layer(output_file, z)
 
@@ -76,7 +77,7 @@ def main():
 
                         o = Decimal(p + 0.5) * nozzle
 
-                        offset = perimeter.offset(island, o)
+                        offset = perimeter.offset(island[:], o)
                         #plotter.plot(g, offset, "green")
 
                         trimmed = sort.short(slice.snap(perimeter.trim(offset)))
@@ -91,7 +92,7 @@ def main():
                             export.path(output_file, trimmed)
 
 
-                    offset = perimeter.offset(island, nozzle * perim_count)
+                    offset = perimeter.offset(island, nozzle * (perim_count + Decimal(0.5)))
                     #plotter.plot(g, offset, "green", "", 2)
 
                     trimmed = sort.short(slice.snap(perimeter.trim(offset)))
