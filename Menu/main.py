@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 
+testing = True
+
 def calculate(*args):
     try:
         value = float(feet.get())
@@ -11,7 +13,12 @@ def calculate(*args):
 root = Tk()
 root.overrideredirect(True)
 root.title("Feet to Meters")
-root.geometry("320x240+450+350")
+
+if testing:
+    root.geometry("320x240+450+350")
+else:
+    root.geometry("320x240+0+0")
+    root.config(cursor="none")
 
 style = ttk.Style()
 style.theme_use("default")
@@ -31,7 +38,7 @@ titleframe = ttk.Frame(rootframe)
 titleframe.grid(column=0, row=0, sticky=(N, E, W))
 titleframe.columnconfigure(0, minsize=20)
 titleframe.rowconfigure(0, minsize=40)
-backimage = PhotoImage(file="back.png")
+backimage = PhotoImage(file="back.gif")
 ttk.Button(titleframe, image=backimage, command=quit).grid(row=0, column=0, sticky=(N, E, S, W))
 ttk.Label(titleframe, text="Menu Title", style="Title.TLabel").grid(row=0, column=1, sticky="news")
 
