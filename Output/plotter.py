@@ -16,6 +16,8 @@ def graph(title=""):
     root.title("Plot: {}".format(title))
     root.attributes('-alpha', 0.8)
     root.geometry('+10+10')
+    root.bind("<Key-Escape>", quit)
+
 
     canvas = Canvas(root, width=820, height=820, bg="white")
     canvas.pack()
@@ -34,7 +36,7 @@ def graph(title=""):
 # End of function graph()
 
 
-def plot(canvas, linelist, trace="black", marker="", radius=0):
+def plot(canvas, linelist, trace="black", marker="black", radius=2):
     """
     Plot the lines on the specified canvas
 

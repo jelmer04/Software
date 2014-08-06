@@ -64,21 +64,21 @@ def main():
                 island = sort.merge(sort.clockwise(island))
                 islands[i] = island
 
-                plotter.plot(g, island, "--red", "", 0)
+                plotter.plot(g, island, "--red", "")
 
                 # Generate perimeter scans
                 if len(island) > 0:
-                    for p in range(0, perim_count):
-                        #if p == 0:
-                        #    o = nozzle/2
-                        #    offset = island
-                        #else:
-                        #    o = nozzle
+                    for p in range(0, perim_count +1):
+                        if p == 0:
+                            o = nozzle/2
+                            trimmed = island
+                        else:
+                            o = nozzle
 
-                        o = Decimal(p + 0.5) * nozzle
+                        #o = Decimal(p + 0.5) * nozzle
 
-                        offset = perimeter.offset(island[:], o)
-                        #plotter.plot(g, offset, "green")
+                        offset = perimeter.offset(trimmed, o)
+                        #plotter.plot(g, offset, "green", "")
 
                         trimmed = sort.short(slice.snap(perimeter.trim(offset)))
 
@@ -88,19 +88,14 @@ def main():
                         else:
                             fillarea = True
 
-                            plotter.plot(g, trimmed)
-                            export.path(output_file, trimmed)
+                            if p < perim_count:
 
+                                plotter.plot(g, trimmed, "black", "")
+                                export.path(output_file, trimmed)
 
-                    offset = perimeter.offset(island, nozzle * (perim_count + Decimal(0.5)))
-                    #plotter.plot(g, offset, "green", "", 2)
-
-                    trimmed = sort.short(slice.snap(perimeter.trim(offset)))
-
-                    plotter.plot(g, trimmed, "--red", "", 0)
+                    #plotter.plot(g, trimmed, "--red", "")
 
                     filllayer.extend(trimmed)
-                #break
 
             #export.csv_islands(filename, islands, z)
             if fillarea:
