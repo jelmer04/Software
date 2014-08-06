@@ -1,7 +1,11 @@
+import platform
 from tkinter import *
 from tkinter import ttk
 
-testing = True
+if platform.system() == "Linux":
+    testing = False
+else:
+    testing = True
 
 def calculate(*args):
     try:
