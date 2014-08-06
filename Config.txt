@@ -14,11 +14,11 @@ slice_stop:	    10
 slice_step:	    100
 
 /// Perimeter path settings
-perim_count:	3
+perim_count:	1
 
 /// Infill settings
 fill_angle:	    0
-fill_spacing:	0.15
+fill_spacing:	200
 
 /// Machine parameters
-nozzle_dia:	    0.15
+nozzle_dia:	    0
