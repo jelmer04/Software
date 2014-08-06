@@ -5,7 +5,7 @@ from Load import stl
 from Load import parameters
 from Slicer import slice
 from Slicer import sort
-from Output import export
+from Output import post
 from Output import plotter
 from Path import perimeter
 import filler
@@ -31,7 +31,7 @@ def main():
     perim_count = int(parameters.get(params, "perim_count"))
 
     output_file = parameters.get(params, "output_file")
-    export.newfile(output_file)
+    post.newfile(output_file)
 
     start = parameters.get(params, "slice_start")
     stop = parameters.get(params, "slice_stop")
@@ -44,8 +44,6 @@ def main():
 
     graph = []
     for z in slices:
-
-        export.layer(output_file, z)
 
         print("Slicing at", z)
         sliced = slice.snap(slice.layer(snapped[:], z))
@@ -91,13 +89,13 @@ def main():
                             if p < perim_count:
 
                                 plotter.plot(g, trimmed, "black", "")
-                                export.path(output_file, trimmed)
+
+                                post.path(output_file, trimmed)
 
                     #plotter.plot(g, trimmed, "--red", "")
 
                     filllayer.extend(trimmed)
 
-            #export.csv_islands(filename, islands, z)
             if fillarea:
                 print("Filling layer...")
                 fill = filler.fill(filllayer, parameters.get(params, "fill_spacing"), parameters.get(params, "fill_angle"))
@@ -105,8 +103,10 @@ def main():
 
                 for f in fill:
                     plotter.plot(g, f, "blue", "", 0)
-                    export.path(output_file, f)
 
+                    post.path(output_file, f)
+
+            post.endlayer(output_file)
 
         else:
             print("Didn't find any intersections")

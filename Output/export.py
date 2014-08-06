@@ -29,13 +29,14 @@ def newfile(filename):
 
 
 def path(filename, path):
-    with open(filename, "a") as file:
-        file.write("new path\n")
-        for line in path:
-            write = "\tfrom ({:.2f},{:.2f}) \t to ({:.2f},{:.2f})\n".\
-                    format(float(line[1][0]), float(line[1][1]), float(line[2][0]), float(line[2][1]))
-            file.write(write)
-        file.write("\n")
+    if len(path) > 0:
+        with open(filename, "a") as file:
+            file.write("new path\n")
+            for line in path:
+                write = "\tfrom ({:.2f},{:.2f}) \t to ({:.2f},{:.2f})\n".\
+                        format(float(line[1][0]), float(line[1][1]), float(line[2][0]), float(line[2][1]))
+                file.write(write)
+            file.write("\n")
 
 
 def layer(filename, layer):
