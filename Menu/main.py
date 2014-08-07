@@ -37,6 +37,7 @@ class Menu(ttk.Frame):
         self.bind("<Key-Escape>", quit)
 
         self.create(*args)
+        self.lower()
 
     def create(self, title="Menu", names=[], commands=[]):
         # Menu title bar
@@ -111,7 +112,12 @@ class Menu(ttk.Frame):
                 .grid(row=layout[0], column=layout[1], rowspan=layout[2], columnspan=layout[3], sticky=(N, E, S, W))
 
 
-menu = Menu(root, "Test Menu", ["Button 1", "Button 2"])
+printmenu = Menu(root, "Print", ["From USB", "From Network", "Test Part"])
+manualmenu = Menu(root, "Manual Control", ["Home", "Move Axes", "Extruders", "Temperatures"])
+calibrationmenu = Menu(root, "Calibration", ["Level Bed", "Material Selection", "Extruder Offset", "Bed Depth"])
+servicingmenu = Menu(root, "Servicing", ["Change Filament", "Test Routines", "Software Update", "Shutdown"], [None, None, None, quit])
+mainmenu = Menu(root, "Main Menu", ["Print", "Manual Control", "Calibration", "Servicing"], [printmenu.lift, manualmenu.lift, calibrationmenu.lift, servicingmenu.lift])
 
 
+mainmenu.lift()
 root.mainloop()
