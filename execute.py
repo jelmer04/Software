@@ -59,8 +59,8 @@ def main():
 
             filllayer = []
             for i, island in enumerate(islands):
-                island = sort.merge(sort.clockwise(island))
-                islands[i] = island
+                island = sort.merge(sort.clockwise(island[:]))
+                #islands[i] = island
 
                 plotter.plot(g, island, "--red", "")
 

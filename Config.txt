@@ -21,4 +21,4 @@ fill_angle:	    0
 fill_spacing:	1
 
 /// Machine parameters
-nozzle_dia:	    0.5
+nozzle_dia:	    0.15
