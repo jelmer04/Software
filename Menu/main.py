@@ -44,7 +44,7 @@ class Menu(ttk.Frame):
         titleframe.columnconfigure(0, minsize=20)
         titleframe.rowconfigure(0, minsize=40)
 
-        self.backimage = PhotoImage(file="back.png")
+        self.backimage = PhotoImage(file="back.gif")
         ttk.Button(titleframe, image=self.backimage, command=self.destroy).grid(row=0, column=0, sticky=(N, E, S, W))
 
         ttk.Label(titleframe, text="Menu Title", style="Title.TLabel").grid(row=0, column=1, sticky=(N, E, S, W))
@@ -60,7 +60,7 @@ class Menu(ttk.Frame):
         ttk.Button(mainframe, text="Button 1").grid(row=0, column=0, sticky=(N, E, S, W))
         ttk.Button(mainframe, text="Button 2").grid(row=0, column=1, sticky=(N, E, S, W))
         ttk.Button(mainframe, text="Button 3").grid(row=1, column=0, sticky=(N, E, S, W))
-        ttk.Button(mainframe, text="Button 4").grid(row=1, column=1, sticky=(N, E, S, W))
+        ttk.Button(mainframe, text="Button 4", command=quit).grid(row=1, column=1, sticky=(N, E, S, W))
 
 
 menu = Menu(master=root)
