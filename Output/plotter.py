@@ -36,7 +36,7 @@ def graph(title=""):
 # End of function graph()
 
 
-def plot(canvas, linelist, trace="black", marker="black", radius=2):
+def plot(canvas, linelist, trace="black", marker="black", radius=2, numbers=False):
     """
     Plot the lines on the specified canvas
 
@@ -74,6 +74,9 @@ def plot(canvas, linelist, trace="black", marker="black", radius=2):
             canvas.create_line(x[0], y[0], x[1], y[1], width=1, fill=fill, dash=1)
         else:
             canvas.create_line(x[0], y[0], x[1], y[1], width=1, fill=trace)
+
+        if numbers:
+            canvas.create_text((x[0]+x[1])/2 + (line[0][0] * 10), (y[0]+y[1])/2 - (line[0][1] * 10), text=i, font="Helvetica 5")
     return
 # End of function plot()
 

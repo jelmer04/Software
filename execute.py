@@ -76,9 +76,12 @@ def main():
                         #o = Decimal(p + 0.5) * nozzle
 
                         offset = perimeter.offset(trimmed, o)
-                        #plotter.plot(g, offset, "green", "")
+                        #plotter.plot(g, offset, "", "green")
 
-                        trimmed = sort.short(slice.snap(perimeter.trim(offset)))
+                        trimmed = slice.snap(perimeter.trim(offset[:]))
+                        #plotter.plot(g, trimmed, "black", "")
+
+
 
                         if not sort.isclockwise(offset):
                             print("Offset too great")
@@ -92,9 +95,10 @@ def main():
 
                                 post.path(output_file, trimmed)
 
-                    #plotter.plot(g, trimmed, "--red", "")
+                    plotter.plot(g, trimmed, "--red", "")
 
                     filllayer.extend(trimmed)
+
 
             if fillarea:
                 print("Filling layer...")

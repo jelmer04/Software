@@ -23,6 +23,10 @@ def trim(linelist):
     :param linelist:    list of lines
     :return:            list of trimmed lines
     """
+
+    firstpass = 0.3
+    searchpass = 0.1
+
     sub = lambda x, y: ((x[0] - y[0]), (x[1] - y[1]))
 
     nonintersections = []
@@ -35,7 +39,7 @@ def trim(linelist):
         #print("Trimming", line[1:], last[1:])
 
         #print("Intersect:", line[1], sub(line[2], line[1]), last[1], sub(last[2], last[1]))
-        intersection = intersect(line[1], sub(line[2], line[1]), last[2], sub(last[1], last[2]), "abs 0.25")
+        intersection = intersect(line[1], sub(line[2], line[1]), last[2], sub(last[1], last[2]), "abs " + str(firstpass))
 
         #intersection = tuple(Decimal((a+b)/2) for (a, b) in zip(line[1], last[2]))
 
@@ -50,6 +54,8 @@ def trim(linelist):
             nonintersections.append([i-1, i])
         i += 1
 
+
+    # Group lines
     i = 0
     while i < len(intersections):
         pair = intersections[i]
@@ -58,17 +64,6 @@ def trim(linelist):
         if pair[0] == last[-1]:
             last.append(pair[1])
             intersections.pop(i)
-        else:
-            i += 1
-
-    i = 0
-    while i < len(nonintersections):
-        pair = nonintersections[i]
-        last = nonintersections[i-1]
-
-        if pair[0] == last[-1]:
-            last.append(pair[1])
-            nonintersections.pop(i)
         else:
             i += 1
 
@@ -81,19 +76,22 @@ def trim(linelist):
     for i, pair in enumerate(nonintersections):
         fixed = False
 
+        print("Trying to fix", pair)
+
         # Find intersections with first point
-        print("Searching with first point", intersections[i + 1])
+        print("Searching with first point")
         search = linelist[pair[0]]
 
-        for j in intersections[i + 1]:
+        for j in range(pair[-1] + 1, len(linelist)):
 
             if j >= len(linelist):
                 j -= (len(linelist)+1)
 
             line = linelist[j]
-            intersection = intersect(line[1], sub(line[2], line[1]), search[2], sub(search[1], search[2]), "shorten")
+            intersection = intersect(line[1], sub(line[2], line[1]), search[2], sub(search[1], search[2]), "abs " + str(searchpass))
             #print(j, intersection)
             if intersection:
+                print("Fixing", pair, intersection)
                 linelist[pair[0]][2] = intersection
                 linelist[j][1] = intersection
 
@@ -101,39 +99,44 @@ def trim(linelist):
                 fixed = True
                 break
 
-        if fixed:
-            break
+        if not fixed:
 
-        # Find intersections with second point
-        print("Searching with second point")
-        search = linelist[pair[-1]]
+            # Find intersections with second point
+            print("Searching with second point")
+            search = linelist[pair[-1]]
 
-        for j in intersections[i]:
+            for j in range(0, pair[0]):
 
-            if j >= len(linelist):
-                j -= (len(linelist)+1)
+                if j >= len(linelist):
+                    j -= (len(linelist)+1)
 
-            line = linelist[j]
-            intersection = intersect(line[1], sub(line[2], line[1]), search[2], sub(search[1], search[2]), "shorten")
-            #print(j, intersection)
-            if intersection:
-                linelist[pair[-1]][1] = intersection
-                linelist[j][2] = intersection
+                line = linelist[j]
+                intersection = intersect(line[1], sub(line[2], line[1]), search[2], sub(search[1], search[2]), "abs " + str(searchpass))
+                #print(j, intersection)
+                if intersection:
+                    print("Fixing", pair, intersection)
+                    linelist[pair[-1]][1] = intersection
+                    linelist[j][2] = intersection
 
-                removals.extend(range(j + 1, pair[-1]))
-                fixed = True
+                    removals.extend(range(j + 1, pair[-1]))
+                    fixed = True
+                    break
 
-    print("Lines:", len(linelist))
+        if not fixed:
+            print("Couldn't fix", pair)
+
 
     removals = list(set(removals))
+    removals.sort()
     print("Remove:", removals)
     for i, r in enumerate(removals):
-        print(r)
         if r - i < len(linelist):
-            #linelist.pop(r - i)
+            #linelist[r] = [(Decimal('0'), Decimal('0'), Decimal('0')), (Decimal('0'), Decimal('0')), (Decimal('0'), Decimal('0'))]
+            linelist.pop(r - i)
             pass
 
     #print("Trimmed to:", linelist)
+
 
     return linelist
 
@@ -208,12 +211,13 @@ def intersect(posa, dira, posb, dirb, mode = "extend"):
     :param mode:
     :return:
     """
-    if dira[1] == 0 and dirb[1] == 0 and posa != posb:
+    if dira[1] == 0 and dirb[1] == 0 and posa != posb\
+            or ((dira[1] != 0 and dirb[1] != 0) and (dira[0] / dira[1] == dirb[0] / dirb[1])):
         return False
 
     if (dira[1] == 0 and dirb[1] == 0) \
-            or ((dira[1] != 0 and dirb[1] != 0) and (dira[0] / dira[1] == dirb[0] / dirb[1])) \
             or (posa == posb):
+        print("Unable to calculate intersection")
         return posb
 
     k1 = ((posa[0] * dirb[1]) - (posa[1] * dirb[0]) + (posb[1] * dirb[0]) - (posb[0] * dirb[1]))
@@ -223,16 +227,11 @@ def intersect(posa, dira, posb, dirb, mode = "extend"):
 
     #print("K =", abs(round(k1, 3)), "L =", abs(round(l1, 3)))
 
-    if abs(round(l1, 3)) == 0:
-        #print("L is zero")
-        return posb
-    if abs(round(k1, 3)) == 0:
-        #print("K is zero")
-        return posb
-    else:
-        #print("K and L both non-zero")
-        k1 = Decimal(k1 / l1)
-        k2 = Decimal(k2 / l2)
+    if k1 == 0 or k2 == 0:
+        return False
+
+    k1 = Decimal(k1 / l1)
+    k2 = Decimal(k2 / l2)
 
     #print("K =", k1, k2)
 
@@ -244,8 +243,14 @@ def intersect(posa, dira, posb, dirb, mode = "extend"):
     elif mode.startswith("abs"):
         mode = mode.split()
         limit = Decimal(mode[1])
-        limit1 = limit / magnitude(dira)
-        limit2 = limit / magnitude(dirb)
+        try:
+            limit1 = limit / magnitude(dira)
+        except:
+            limit1 = 0
+        try:
+            limit2 = limit / magnitude(dirb)
+        except:
+            limit2 = 0
         mode = mode[0]
 
     #print("Limit =", limit)
