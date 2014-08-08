@@ -14,7 +14,7 @@ slice_stop:	    20
 slice_step:	    5
 
 /// Perimeter path settings
-perim_count:	1
+perim_count:	2
 
 /// Infill settings
 fill_angle:	    0
