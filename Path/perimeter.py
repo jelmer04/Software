@@ -1,6 +1,80 @@
 from decimal import Decimal
+from shapely import geometry
+
+
+def polygon(linelist):
+    pointlist = [linelist[0][1]]
+    for line in linelist:
+        pointlist.append(line[2])
+
+    return geometry.Polygon(pointlist)
+
+
+def separate(linelist):
+    poly = polygon(linelist)
+    poly = poly.buffer(0.01)
+
+    print(poly.geom_type, poly.length, poly.area)
+
+    islands = []
+
+    if poly.geom_type == "MultiPolygon":
+        for p in poly:
+            islands.append(linepoly(p))
+
+        return islands
+    else:
+        return False
+
+
+
+
+def linepoly(poly):
+    coords = list(poly.exterior.coords)
+    linelist = []
+    for i, p in enumerate(coords):
+        p = tuple(Decimal(x) for x in p)
+        mag = magnitude(p)
+        n = tuple(Decimal(x)/mag for x in p)
+        n = [n[1], n[0]]
+
+        linelist.append([n, p, coords[i - 1]])
+
+    for i, (n, *points) in enumerate(linelist):
+        x = points[0][0] > points[1][0]
+        y = points[0][1] > points[1][1]
+
+        if not x and not y:
+            n = [n[0], -n[1]]
+        elif x and not y:
+            n = [n[0], n[1]]
+        elif x and y:
+            n = [-n[0], n[1]]
+        elif not x and y:
+            n = [-n[0], -n[1]]
+        else:
+            n = [0, 0]
+
+        #print(n)
+        linelist[i][0] = tuple(n)
+
+
+    return linelist
+
 
 def offset(linelist, distance):
+    pointlist = [linelist[0][1]]
+    for line in linelist:
+        pointlist.append(line[2])
+
+    poly = polygon(linelist)
+
+    poly = poly.buffer(-distance)
+
+    if poly.geom_type == "MultiPolygon":
+        poly = poly[0]
+
+    return linepoly(poly)
 
     for i, (n, a, b) in enumerate(linelist):
         mag = magnitude(n[:2])

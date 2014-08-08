@@ -9,16 +9,16 @@ part_file: 	    Parts/2cm Donut Binary.stl
 output_file:	test.txt
 
 /// Slicer limits in mm
-slice_start:    0
+slice_start:    0.0
 slice_stop:	    20
 slice_step:	    5
 
 /// Perimeter path settings
-perim_count:	2
+perim_count:	1
 
 /// Infill settings
 fill_angle:	    0
 fill_spacing:	1
 
 /// Machine parameters
-nozzle_dia:	    0.15
+nozzle_dia:	    0.5

@@ -51,6 +51,15 @@ def main():
 
         if len(sliced) > 0:
             islands = sort.chop(sliced[:])
+
+            for i, island in enumerate(islands):
+                separate = perimeter.separate(island)
+
+                if separate:
+                    islands[i] = separate[0]
+                    for s in separate[1:]:
+                        islands.append(s)
+
             #print("Islands:", islands)
             print("Found", len(islands), "islands to fill")
 
@@ -59,7 +68,7 @@ def main():
 
             filllayer = []
             for i, island in enumerate(islands):
-                island = sort.merge(sort.clockwise(island[:]))
+                island = (sort.clockwise(island[:]))
                 #islands[i] = island
 
                 plotter.plot(g, island, "--red", "")
@@ -67,41 +76,42 @@ def main():
                 # Generate perimeter scans
                 if len(island) > 0:
                     for p in range(0, perim_count +1):
-                        if p == 0:
-                            o = nozzle/2
-                            trimmed = island
-                        else:
-                            o = nozzle
+                        #if p == 0:
+                        #    o = nozzle/2
+                        #    offset = island
+                        #else:
+                        #    o = nozzle
 
-                        #o = Decimal(p + 0.5) * nozzle
+                        o = Decimal(p + 0.5) * nozzle
 
-                        offset = perimeter.offset(trimmed, o)
+                        offset = sort.clockwise(slice.snap(perimeter.offset(island[:], o)))
                         #plotter.plot(g, offset, "", "green")
 
-                        trimmed = slice.snap(perimeter.trim(offset[:]))
+                        #trimmed = slice.snap(perimeter.trim(offset))
                         #plotter.plot(g, trimmed, "black", "")
 
+                        fillarea = True
 
+                        if p < perim_count:
 
-                        if not sort.isclockwise(offset):
-                            print("Offset too great")
-                            fillarea = False
-                        else:
-                            fillarea = True
+                            plotter.plot(g, offset, "black", "")
 
-                            if p < perim_count:
+                            post.path(output_file, offset)
 
-                                plotter.plot(g, trimmed, "black", "")
+#                    offset = offset[len(island):]
 
-                                post.path(output_file, trimmed)
+                    #plotter.plot(g, offset, "--red", "")
 
-                    plotter.plot(g, trimmed, "--red", "")
+                    #print("Island fill:", offset)
 
-                    filllayer.extend(trimmed)
+                    filllayer.extend(offset)
 
 
             if fillarea:
                 print("Filling layer...")
+
+                #print(filllayer)
+
                 fill = filler.fill(filllayer, parameters.get(params, "fill_spacing"), parameters.get(params, "fill_angle"))
 
 

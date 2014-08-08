@@ -54,18 +54,32 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
             if line[2][0] == segment:
                 intersections.append([line[0], line[2]])
 
+
             # If the mesh segment is within the current line's x limits, find the intersection
             if (line[1][0] < segment < line[2][0]) or (line[1][0] > segment > line[2][0]):
-                intersections.append([line[0], tuple(slice.snap_number(x) for x in
-                                           perimeter.intersect(line[1], sub(line[2], line[1]),
-                                                               (segment, 0), (0, 1)))])
+                intersection = perimeter.intersect(line[1], sub(line[2], line[1]), (segment, 0), (0, 1))
+                if not intersection:
+                    intersection = line[1]
+                intersections.append([line[0], tuple(slice.snap_number(x) for x in intersection)])
+
 
         # If the mesh segment has intersections with the perimeter:
         if len(intersections) > 0:
             # Sort the intersections into y-order
             intersections.sort(key=lambda x: x[1][1])
 
-            #print("Segment intersects at:", segment, tuple(i[1][1] for i in intersections))
+            #print("Segment intersects at:", segment, tuple((str(i[1][1]), str(i[0][1])) for i in intersections))
+
+            '''
+            j = 1
+            while j < len(intersections):
+                if intersections[j][1][1] == intersections[j - 1][1][1]:
+                    intersections.pop(j)
+                else:
+                    j += 1
+            '''
+
+            #print("Segment intersects at:", segment, tuple((str(i[1][1]), str(i[0][1])) for i in intersections))
 
             # Reverse alternate lines to achieve snaking pattern
             if flip:
