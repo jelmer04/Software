@@ -1,11 +1,11 @@
 from decimal import Decimal
 from tkinter import *
-scale = 40
+scale = 40           # 40 for 2cm, 5 for 15cm
 margin = 10
 window = Decimal(0)
 
 
-def graph(title=""):
+def graph(title="", scale=scale):
     """
     Creates a graph window
 
@@ -40,7 +40,7 @@ def graph(title=""):
 # End of function graph()
 
 
-def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=False):
+def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=False, scale=scale):
     """
     Plot the lines on the specified canvas
 
@@ -89,7 +89,7 @@ def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=False):
 # End of function plot()
 
 
-def points(canvas, linelist, radius=4, marker="blue"):
+def points(canvas, linelist, radius=4, marker="blue", scale=scale):
     scale = 40
     margin = 10
 

@@ -27,6 +27,8 @@ def main():
     snapped = slice.snap(loaded)
     # print("Snapped:", snapped)
 
+    plotterscale = parameters.get(params, "plotter_scale")
+
     nozzle = parameters.get(params, "nozzle_dia")
     perim_count = int(parameters.get(params, "perim_count"))
 
@@ -63,7 +65,7 @@ def main():
             #print("Islands:", islands)
             print("Found", len(islands), "islands to fill")
 
-            g = plotter.graph("Z = {}".format(z))
+            g = plotter.graph("Z = {}".format(z), scale=plotterscale)
             graph.append(g)
 
             filllayer = []
@@ -71,7 +73,7 @@ def main():
                 island = (sort.clockwise(island[:]))
                 #islands[i] = island
 
-                plotter.plot(g, island, "--red", "")
+                #plotter.plot(g, island, "--red", "")
 
                 # Generate perimeter scans
                 if len(island) > 0:
@@ -84,23 +86,23 @@ def main():
 
                         o = Decimal(p + 0.5) * nozzle
 
-                        offset = sort.clockwise(slice.snap(perimeter.offset(island[:], o)))
-                        #plotter.plot(g, offset, "", "green")
+                        offset = sort.chop(slice.snap(perimeter.offset(island[:], o)))[0]
+                        #plotter.plot(g, offset, "", "green", scale=plotterscale)
 
                         #trimmed = slice.snap(perimeter.trim(offset))
-                        #plotter.plot(g, trimmed, "black", "")
+                        #plotter.plot(g, trimmed, "black", "", scale=plotterscale)
 
                         fillarea = True
 
                         if p < perim_count:
 
-                            plotter.plot(g, offset, "black", "")
+                            plotter.plot(g, offset, "black", "", scale=plotterscale)
 
                             post.path(output_file, offset)
 
 #                    offset = offset[len(island):]
 
-                    #plotter.plot(g, offset, "--red", "")
+                    #plotter.plot(g, offset, "--red", "", scale=plotterscale)
 
                     #print("Island fill:", offset)
 
@@ -116,7 +118,7 @@ def main():
 
 
                 for f in fill:
-                    plotter.plot(g, f, "blue", "", 0)
+                    plotter.plot(g, f, "blue", "", 0, scale=plotterscale)
 
                     post.path(output_file, f)
 
@@ -129,6 +131,6 @@ def main():
 print("Processing took:", timeit.timeit(main, number=1), "seconds")
 
 
-plotter.graph()
-plotter.graph().mainloop()
-#graph[-1].mainloop()
+#plotter.graph(scale=800)
+plotter.graph(scale=800).mainloop()
+#graph[0].mainloop()

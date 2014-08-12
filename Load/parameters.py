@@ -5,7 +5,7 @@ from tkinter import messagebox
 
 def nameslist():
     return ["part_file", "output_file", "slice_start", "slice_stop", "slice_step", "perim_count", "fill_angle",
-            "fill_spacing", "nozzle_dia"]
+            "fill_spacing", "nozzle_dia", "plotter_scale"]
 
 def types(i):
     """
@@ -22,22 +22,23 @@ def types(i):
     :param i: index to return type of
     :return:  type of parameter
     """
-    return ["fx", "fa", "d", "d", "d", "i", "i", "d", "d"][i]
+    return ["fx", "fa", "d", "d", "d", "i", "i", "d", "d", "i"][i]
 
 
 def load(filename):
-    params = ["", "", 0, 0, 1, 1, 0, 1, 1]
+    params = ["", "", 0, 0, 1, 1, 0, 1, 1, 40]
     names = nameslist()
 
-    part_file = ""
-    output_file = ""
-    slice_start = 0
-    slice_stop = 0
-    slice_step = 1
-    perim_count = 1
-    fill_angle = 0
-    fill_spacing = 1
-    nozzle_dia = 1
+    # Defaults:
+    #part_file = ""
+    #output_file = ""
+    #slice_start = 0
+    #slice_stop = 0
+    #slice_step = 1
+    #perim_count = 1
+    #fill_angle = 0
+    #fill_spacing = 1
+    #nozzle_dia = 1
 
     with open(filename, "r") as file:
         for line in file:

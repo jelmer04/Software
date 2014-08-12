@@ -14,7 +14,7 @@ def separate(linelist):
     poly = polygon(linelist)
     poly = poly.buffer(0.01)
 
-    print(poly.geom_type, poly.length, poly.area)
+    #print(poly.geom_type, poly.length, poly.area)
 
     islands = []
 
@@ -32,27 +32,40 @@ def separate(linelist):
 def linepoly(poly):
     coords = list(poly.exterior.coords)
     linelist = []
-    for i, p in enumerate(coords):
+    #print(coords)
+    for i, p in enumerate(coords[:-1]):
         p = tuple(Decimal(x) for x in p)
+        q = tuple(Decimal(x) for x in coords[i + 1])
         mag = magnitude(p)
-        n = tuple(Decimal(x)/mag for x in p)
-        n = [n[1], n[0]]
+        #print(mag)
+        if mag == 0:
+            mag = 1
+        n = tuple(Decimal(a - b)/mag for a, b in zip(p, q))
+        n = [n[1], -n[0]]
 
-        linelist.append([n, p, coords[i - 1]])
+        linelist.append([n, p, q])
 
+    return linelist
+
+
+def normals(linelist):
+    # Needs tuning for specific applications??
     for i, (n, *points) in enumerate(linelist):
         x = points[0][0] > points[1][0]
         y = points[0][1] > points[1][1]
 
+        #print(i, x, y)
+
         if not x and not y:
             n = [n[0], -n[1]]
         elif x and not y:
-            n = [n[0], n[1]]
+            n = [n[0], -n[1]]
         elif x and y:
-            n = [-n[0], n[1]]
+            n = [n[0], -n[1]]
         elif not x and y:
-            n = [-n[0], -n[1]]
+            n = [n[0], -n[1]]
         else:
+            #print("Zero", i, x, y)
             n = [0, 0]
 
         #print(n)
@@ -76,18 +89,18 @@ def offset(linelist, distance):
 
     return linepoly(poly)
 
-    for i, (n, a, b) in enumerate(linelist):
-        mag = magnitude(n[:2])
-        if mag != 1:
-            n = tuple(z / mag for z in n)
-
-        a = tuple((a[0] - n[0] * distance, a[1] - n[1] * distance))
-        b = tuple((b[0] - n[0] * distance, b[1] - n[1] * distance))
-
-        #print("New line:", a, b)
-        linelist[i] = [n, a, b]
-
-    return list(linelist)
+#    for i, (n, a, b) in enumerate(linelist):
+#        mag = magnitude(n[:2])
+#        if mag != 1:
+#            n = tuple(z / mag for z in n)
+#
+#        a = tuple((a[0] - n[0] * distance, a[1] - n[1] * distance))
+#        b = tuple((b[0] - n[0] * distance, b[1] - n[1] * distance))
+#
+#        #print("New line:", a, b)
+#        linelist[i] = [n, a, b]
+#
+#    return list(linelist)
 
 
 def trim(linelist):
