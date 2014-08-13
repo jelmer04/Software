@@ -48,7 +48,15 @@ def main():
     for z in slices:
 
         print("Slicing at", z)
-        sliced = slice.snap(slice.layer(snapped[:], z))
+        sliced = slice.layer(snapped[:], z)
+
+        if len(sliced) == 0:
+            z += Decimal("0.01")
+            for i, s in enumerate(slices):
+                slices[i] = s + Decimal("0.01")
+            sliced = slice.layer(snapped[:], z)
+
+        sliced = slice.snap(sliced)
         #print("Slicing at", z, sliced)
 
         if len(sliced) > 0:

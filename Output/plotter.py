@@ -40,7 +40,7 @@ def graph(title="", scale=scale):
 # End of function graph()
 
 
-def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=False, scale=scale):
+def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=True, scale=scale):
     """
     Plot the lines on the specified canvas
 

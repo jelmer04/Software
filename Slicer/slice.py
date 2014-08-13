@@ -46,6 +46,8 @@ def layer(facetlist, depth):
 
     for facet in facetlist[:]:
         facet = facet[:]
+        #print("Normal:", facet[0])
+
         if facet:
             coords = [facet.pop(0)]
 
@@ -123,7 +125,7 @@ def layer(facetlist, depth):
             if len(coords) != 3:
                 pass
                 # print("Invalid number of line points:", coords, "\t Mode:", mode)
-            if mode == 1 or mode == 2 or mode == 4:
+            if mode == 1 or mode == 2:# or mode == 4:
                 linelist.append(coords)
 
     print("Found", len(linelist), "lines.")
