@@ -42,13 +42,13 @@ def graph(title="", scale=scale):
 # End of function graph()
 
 
-def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=False, arrow=none, scale=scale):
+def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=False, arrow=None, scale=scale):
     """
     Plot the lines on the specified canvas
 
     :param numbers:     True/False - print numbers offset by the line normal
     :param arrow:       None/LAST - print arrows pointing toward the last point
-    :param scale:
+    :param scale:       800/limits
     @param canvas:      canvas to draw on
     @param linelist:    list of lines
     @param radius:      radius of markers

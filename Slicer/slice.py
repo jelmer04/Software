@@ -43,7 +43,8 @@ def layer(facetlist, depth):
     """
 
     linelist = []
-    fours = False
+    fours = 0
+    notfours = 0
 
     for facet in facetlist[:]:
         facet = facet[:]
@@ -126,12 +127,19 @@ def layer(facetlist, depth):
             if len(coords) != 3:
                 pass
                 # print("Invalid number of line points:", coords, "\t Mode:", mode)
-            if mode != 4:
-                fours = True
+
+            if mode != 0:
+                #print(mode)
+                if mode != 4 or mode != 3:
+                    notfours += 1
+                else:
+                    fours += 1
             if mode == 1 or mode == 2 or (mode == 4 and fours):
                 linelist.append(coords)
-
+    #print("Fours\t", fours)
+    #print("Not fours\t", notfours)
     print("Found", len(linelist), "lines.")
+
     return linelist
 # End of function layer()
 

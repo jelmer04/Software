@@ -64,65 +64,65 @@ def main():
 
         if len(sliced) > 0:
             islands = sort.chop(sliced[:])
+            if len(islands) > 0:
+                g = plotter.graph("Z = {}".format(z), scale=plotterscale)
+                graph.append(g)
 
-            g = plotter.graph("Z = {}".format(z), scale=plotterscale)
-            graph.append(g)
+                print("Found", len(islands), "islands to fill")
+                for i, island in enumerate(islands):
+                    islands[i] = sort.merge(island)
+                    plotter.plot(g, island, "green")
 
-            print("Found", len(islands), "islands to fill")
-            for i, island in enumerate(islands):
-                islands[i] = sort.merge(island)
-                plotter.plot(g, island, "green")
+                merged = perimeter.polygon(sort.clockwise(islands[0]))
 
-            merged = perimeter.polygon(sort.clockwise(islands[0]))
-
-            for i, island in enumerate(islands[1:]):
-                try:
-                    merged = perimeter.merge(merged, perimeter.polygon(sort.clockwise(island)))
-                except:
-                    print("Unable to merge", i)
-
-
-            #print("Merged:", merged.geom_type)
-            #print("Islands:", islands)
+                for i, island in enumerate(islands[1:]):
+                    try:
+                        merged = perimeter.merge(merged, perimeter.polygon(sort.clockwise(island)))
+                    except:
+                        print("Unable to merge", i)
 
 
-            plotter.plot(g, perimeter.linepoly(merged), "--red")
-
-            filllayer = []
-
-            # Generate perimeter scans
-            for p in range(0, perim_count + 1):
-
-                o = Decimal(p + 0.5) * nozzle
-
-                offset = perimeter.offset(merged, o)
-
-                fillarea = True
-
-                if p < perim_count:
-                    # Perimeter scans:
-                    plotter.plot(g, perimeter.linepoly(offset), "black", "", scale=plotterscale)
-
-                    post.path(output_file, perimeter.linepoly(offset))
-
-                filllayer = (perimeter.linepoly(offset))
-                #print("Lines bounding fill:", len(filllayer))
+                #print("Merged:", merged.geom_type)
+                #print("Islands:", islands)
 
 
-            if fillarea:
-                print("Filling layer...")
+                plotter.plot(g, perimeter.linepoly(merged), "--red")
 
-                #print(filllayer)
+                filllayer = []
 
-                fill = filler.fill(filllayer, parameters.get(params, "fill_spacing"), parameters.get(params, "fill_angle"))
+                # Generate perimeter scans
+                for p in range(0, perim_count + 1):
+
+                    o = Decimal(p + 0.5) * nozzle
+
+                    offset = perimeter.offset(merged, o)
+
+                    fillarea = True
+
+                    if p < perim_count:
+                        # Perimeter scans:
+                        plotter.plot(g, perimeter.linepoly(offset), "black", "", scale=plotterscale)
+
+                        post.path(output_file, perimeter.linepoly(offset))
+
+                    filllayer = (perimeter.linepoly(offset))
+                    #print("Lines bounding fill:", len(filllayer))
 
 
-                for f in fill:
-                    plotter.plot(g, f, "blue", "", 0, scale=plotterscale)
+                if fillarea:
+                    print("Filling layer...")
 
-                    post.path(output_file, f)
+                    #print(filllayer)
 
-            post.endlayer(output_file)
+                    fill = filler.fill(filllayer, parameters.get(params, "fill_spacing"), parameters.get(params, "fill_angle"))
+
+
+                    for f in fill:
+                        plotter.plot(g, f, "blue", "", 0, scale=plotterscale)
+
+                        post.path(output_file, f)
+
+                post.endlayer(output_file)
 
         else:
             print("Didn't find any intersections")
