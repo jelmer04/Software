@@ -133,17 +133,18 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
                                 for s in linelist[stop:start]:
                                     join.append(s[2])
                             else:
+                                # Some problems with knowing where to join together when moving between islands
                                 for s in linelist[start:]:
                                     pass
                                     if mesh[seg-1] < s[2][0] < segment:
                                         pass
-                                        join.append(s[2])
+                                        #join.append(s[2])
 
                                 for s in linelist[:stop]:
                                     pass
                                     if mesh[seg-1] < s[2][0] < segment:
                                         pass
-                                        join.append(s[2])
+                                        #join.append(s[2])
 
                         else:
                             for s in linelist[start:stop]:
