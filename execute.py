@@ -50,6 +50,9 @@ def main():
         print("Slicing at", z)
         sliced = slice.layer(snapped[:], z)
 
+        #g = plotter.graph("RAW", scale=plotterscale)
+        #plotter.plot(g, sliced)
+
         if len(sliced) == 0:
             z += Decimal("0.01")
             for i, s in enumerate(slices):
@@ -62,59 +65,47 @@ def main():
         if len(sliced) > 0:
             islands = sort.chop(sliced[:])
 
-            for i, island in enumerate(islands):
-                separate = perimeter.separate(island)
-
-                if separate:
-                    islands[i] = separate[0]
-                    for s in separate[1:]:
-                        islands.append(s)
-
-            #print("Islands:", islands)
-            print("Found", len(islands), "islands to fill")
-
             g = plotter.graph("Z = {}".format(z), scale=plotterscale)
             graph.append(g)
 
+            print("Found", len(islands), "islands to fill")
+            for island in islands:
+                plotter.plot(g, island, "green")
+
+            merged = perimeter.polygon(sort.clockwise(islands[0]))
+
+            for i, island in enumerate(islands[1:]):
+                try:
+                    merged = perimeter.merge(merged, perimeter.polygon(sort.clockwise(island)))
+                except:
+                    print("Unable to merge", i)
+
+
+            #print("Merged:", merged.geom_type)
+            #print("Islands:", islands)
+
+
+            plotter.plot(g, perimeter.linepoly(merged), "--red")
+
             filllayer = []
-            for i, island in enumerate(islands):
-                island = (sort.clockwise(island[:]))
-                #islands[i] = island
 
-                #plotter.plot(g, island, "--red", "")
+            # Generate perimeter scans
+            for p in range(0, perim_count + 1):
 
-                # Generate perimeter scans
-                if len(island) > 0:
-                    for p in range(0, perim_count +1):
-                        #if p == 0:
-                        #    o = nozzle/2
-                        #    offset = island
-                        #else:
-                        #    o = nozzle
+                o = Decimal(p + 0.5) * nozzle
 
-                        o = Decimal(p + 0.5) * nozzle
+                offset = perimeter.offset(merged, o)
 
-                        offset = sort.chop(slice.snap(perimeter.offset(island[:], o)))[0]
-                        #plotter.plot(g, offset, "", "green", scale=plotterscale)
+                fillarea = True
 
-                        #trimmed = slice.snap(perimeter.trim(offset))
-                        #plotter.plot(g, trimmed, "black", "", scale=plotterscale)
+                if p < perim_count:
+                    # Perimeter scans:
+                    plotter.plot(g, perimeter.linepoly(offset), "black", "", scale=plotterscale)
 
-                        fillarea = True
+                    post.path(output_file, perimeter.linepoly(offset))
 
-                        if p < perim_count:
-
-                            plotter.plot(g, offset, "black", "", scale=plotterscale)
-
-                            post.path(output_file, offset)
-
-#                    offset = offset[len(island):]
-
-                    #plotter.plot(g, offset, "--red", "", scale=plotterscale)
-
-                    #print("Island fill:", offset)
-
-                    filllayer.extend(offset)
+                filllayer = (perimeter.linepoly(offset))
+                #print("Lines bounding fill:", len(filllayer))
 
 
             if fillarea:
@@ -139,6 +130,6 @@ def main():
 print("Processing took:", timeit.timeit(main, number=1), "seconds")
 
 
-#plotter.graph(scale=800)
+plotter.graph(scale=800)
 plotter.graph(scale=800).mainloop()
 #graph[0].mainloop()

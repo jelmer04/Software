@@ -40,7 +40,7 @@ def graph(title="", scale=scale):
 # End of function graph()
 
 
-def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=True, scale=scale):
+def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=False, scale=scale):
     """
     Plot the lines on the specified canvas
 
@@ -80,6 +80,8 @@ def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=True, sca
             canvas.create_line(x[0], y[0], x[1], y[1], width=1, fill=trace)
 
         if numbers:
+            if not line[0]:
+                line[0] = [0, 0]
             try:
                 canvas.create_text((x[0]+x[1])/2 + (line[0][0] * 10), (y[0]+y[1])/2 - (line[0][1] * 10), text=i, font="Helvetica 5")
             except:

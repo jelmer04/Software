@@ -20,16 +20,35 @@ def separate(linelist):
 
     if poly.geom_type == "MultiPolygon":
         for p in poly:
-            islands.append(linepoly(p))
+            islands.append(lineexterior(p))
 
         return islands
     else:
         return False
 
 
+def merge(a, b):
+    return a.symmetric_difference(b)
 
 
 def linepoly(poly):
+    #print(poly.geom_type)
+    linelist = []
+    if poly.geom_type == "MultiPolygon":
+        for p in poly:
+            linelist.extend(lineinterior(p))
+        return linelist
+    else:
+        return lineinterior(poly)
+
+
+def lineexterior(poly):
+    if poly.geom_type == "LinearRing":
+        poly = geometry.Polygon(poly)
+
+    if poly.is_empty:
+        return [[(0,0,0), (0,0), (0,0)]]
+
     coords = list(poly.exterior.coords)
     linelist = []
     #print(coords)
@@ -45,6 +64,13 @@ def linepoly(poly):
 
         linelist.append([n, p, q])
 
+    return linelist
+
+
+def lineinterior(poly):
+    linelist = lineexterior(poly)
+    for p in poly.interiors:
+        linelist.extend(lineexterior(p))
     return linelist
 
 
@@ -76,18 +102,19 @@ def normals(linelist):
 
 
 def offset(linelist, distance):
-    pointlist = [linelist[0][1]]
-    for line in linelist:
-        pointlist.append(line[2])
-
-    poly = polygon(linelist)
+    try:
+        if linelist.geom_type:
+            pass
+        poly = linelist
+    except:
+        poly = polygon(linelist)
 
     poly = poly.buffer(-distance)
 
-    if poly.geom_type == "MultiPolygon":
-        poly = poly[0]
+    #if poly.geom_type == "MultiPolygon":
+    #    poly = poly[0]
 
-    return linepoly(poly)
+    return (poly)
 
 #    for i, (n, a, b) in enumerate(linelist):
 #        mag = magnitude(n[:2])
