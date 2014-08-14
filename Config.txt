@@ -21,7 +21,7 @@ perim_count:	1
 
 /// Infill settings
 fill_angle:	    0
-fill_spacing:	0.3
+fill_spacing:	1
 
 /// Machine parameters
 nozzle_dia:	    0.3

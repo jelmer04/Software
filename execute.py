@@ -69,7 +69,8 @@ def main():
             graph.append(g)
 
             print("Found", len(islands), "islands to fill")
-            for island in islands:
+            for i, island in enumerate(islands):
+                islands[i] = sort.merge(island)
                 plotter.plot(g, island, "green")
 
             merged = perimeter.polygon(sort.clockwise(islands[0]))
