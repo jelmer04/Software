@@ -3,25 +3,25 @@
 ///
 
 /// Name of the file to load
-part_file: 	    Parts/2cm Donut 2 Binary.stl
+part_file: 	    Parts/star.stl
 
 /// Plotter scale (= 800/limits)
-plotter_scale:  40
+plotter_scale:  5
 
 /// Name of the file to output to
 output_file:	Results/test.txt
 
 /// Slicer limits in mm
 slice_start:    0
-slice_stop:	    10
-slice_step:	    1
+slice_stop:	    15
+slice_step:	    1000
 
 /// Perimeter path settings
 perim_count:	1
 
 /// Infill settings
-fill_angle:	    180
-fill_spacing:	2
+fill_angle:	    0
+fill_spacing:	2000
 
 /// Machine parameters
 nozzle_dia:	    0.3
