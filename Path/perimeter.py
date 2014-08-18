@@ -7,12 +7,26 @@ def polygon(linelist):
     for line in linelist:
         pointlist.append(line[2])
 
-    return geometry.Polygon(pointlist)
+    # Do something with linestrings....
+    linestr = geometry.LineString(pointlist)
+    print(linestr)
+
+    result = linestr.union(geometry.Point(pointlist[0]))
+
+    if result.geom_type == "LineString":
+        return geometry.Polygon(pointlist)
+
+    poly = []
+    for r in result:
+        print(r.geom_type)
+        poly.append(geometry.Polygon(r.coords))
+
+    return geometry.MultiPolygon(poly)
 
 
 def separate(linelist):
     poly = polygon(linelist)
-    poly = poly.buffer(0.01)
+    #poly = poly.buffer(0)
 
     #print(poly.geom_type, poly.length, poly.area)
 

@@ -91,7 +91,7 @@ def plot(canvas, linelist, trace="black", marker="", radius=0, numbers=False, ar
                 pass
             try:
                 canvas.create_text((x[0] + x[1]) / 2 + (line[0][0] * 10), (y[0] + y[1]) / 2 - (line[0][1] * 10), text=i,
-                                   font="Helvetica 5")
+                                   font="Helvetica 8")
             except:
                 # print("Problem with", i)
                 pass

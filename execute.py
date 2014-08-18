@@ -9,6 +9,7 @@ from Output import post
 from Output import plotter
 from Path import perimeter
 import filler
+from shapely import geometry
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
@@ -50,8 +51,8 @@ def main():
         print("Slicing at", z)
         sliced = slice.layer(snapped[:], z)
 
-        #g = plotter.graph("RAW", scale=plotterscale)
-        #plotter.plot(g, sliced)
+        g = plotter.graph("RAW", scale=plotterscale)
+        plotter.plot(g, sliced)
 
         if len(sliced) == 0:
             z += Decimal("0.01")
@@ -71,19 +72,28 @@ def main():
                 print("Found", len(islands), "islands to fill")
                 for i, island in enumerate(islands):
                     islands[i] = sort.merge(island)
-                    plotter.plot(g, island, "green")
+                    #plotter.plot(g, island, "green")
 
                 merged = perimeter.polygon(sort.clockwise(islands[0]))
+                print(merged.area)
 
                 for i, island in enumerate(islands[1:]):
                     try:
-                        merged = perimeter.merge(merged, perimeter.polygon(sort.clockwise(island)))
+                        mergee = perimeter.polygon(sort.clockwise(island))
+                        print(mergee.geom_type)
+                        merged = perimeter.merge(merged, mergee)
                     except:
                         print("Unable to merge", i)
 
 
-                #print("Merged:", merged.geom_type)
+                print("Merged:", merged.geom_type)
+                if merged.geom_type == "Polygon":
+                    print("Polygons: 1")
+                else:
+                    print("Polygons:", len(merged.geoms))
                 #print("Islands:", islands)
+
+                #merged = merged[:]
 
 
                 plotter.plot(g, perimeter.linepoly(merged), "--red")

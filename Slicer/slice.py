@@ -31,7 +31,7 @@ def snap_number(number, precision=2):
     return Decimal(str(round(number, precision)))
 
 
-def layer(facetlist, depth):
+def layer(facetlist, depth, skip=True):
     """
     Slices a geometry (list of facets) in the z plane at the specified depth.
 
@@ -45,8 +45,10 @@ def layer(facetlist, depth):
     linelist = []
     fours = 0
     notfours = 0
+    firstnonfour = None
+    firstfour = None
 
-    for facet in facetlist[:]:
+    for f, facet in enumerate(facetlist[:]):
         facet = facet[:]
         #print("Normal:", facet[0])
 
@@ -132,10 +134,20 @@ def layer(facetlist, depth):
                 #print(mode)
                 if mode != 4 or mode != 3:
                     notfours += 1
-                else:
-                    fours += 1
-            if mode == 1 or mode == 2 or (mode == 4 and fours):
+                    if firstnonfour is None:
+                        firstnonfour = f
+            if mode == 4 or mode == 3:
+                fours += 1
+                if firstfour is None:
+                    firstfour = f
+            if mode == 1 or mode == 2 or (mode == 4 and (fours or not skip)):
                 linelist.append(coords)
+
+    if notfours > 0 and fours > 0 and firstnonfour > firstfour and skip:
+        #print("Go round again")
+        #print(firstfour, firstnonfour)
+        linelist.extend(layer(facetlist[:firstnonfour], depth, False))
+
     #print("Fours\t", fours)
     #print("Not fours\t", notfours)
     print("Found", len(linelist), "lines.")
