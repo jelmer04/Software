@@ -14,7 +14,7 @@ output_file:	Results/test.txt
 /// Slicer limits in mm
 slice_start:    5
 slice_stop:	    15.1
-slice_step:	    5
+slice_step:	    10
 
 /// Perimeter path settings
 perim_count:	1

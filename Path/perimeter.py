@@ -7,6 +7,8 @@ def polygon(linelist):
     for line in linelist:
         pointlist.append(line[2])
 
+    return geometry.Polygon(pointlist)
+
     # Do something with linestrings....
     linestr = geometry.LineString(pointlist)
     print(linestr)

@@ -56,22 +56,31 @@ def chop(linelist):
 
     # Find the triple-point coordinate
     extrapoints = []
+    overlaps = set()
     for point in pointcounter:
-        if point[1] == 3:
+        # If there are an odd number of points
+        if point[1] % 2 == 1:
             extrapoints.append(point[0])
 
-    # Remove the extra lines
+        # If there are more than one pair of the point (point appears more than once on the path)
+        elif point[1] > 2:
+            print("Path overlaps at", point[0])
+            overlaps.add(point[0])
+
+    # Remove the extra lines if present
     if len(extrapoints) > 0:
-        #print("Extra Points:", extrapoints)
+        print("Extra Points:", extrapoints)
         i = 0
-        #for i, line in enumerate(linelist):
+        # As long as there are still lines check
         while i < len(linelist):
             line = linelist[i][1:]
             count = 0
+            # Check the current line against the extra points
             for point in extrapoints:
                 if point in line:
                     count += 1
                 #print(point, line, count)
+            # If both points were marked for removal, remove the line
             if count == 2:
                 print("Removed", line)
                 linelist.pop(i)
@@ -92,18 +101,38 @@ def chop(linelist):
             line = linelist[i]
             i += 1
             #print("Searching for:", search, "in", line[1], line[2])
-
+            retry = False
             if line[1] == search:
-                search = line[2]
-                #print("Found it!")
-                i = 0
-                island.append(linelist.pop(linelist.index(line)))
+                if line[1] in overlaps:
+                    dot = sum(a*b for (a, b) in zip(line[0][:2], island[-1][0][:2]))
+
+                    print("Dot:", dot)
+
+                    if dot < 0:
+                        print("Not a good match, try again.")
+                        retry = True
+
+                if not retry:
+                    search = line[2]
+                    #print("Found it!")
+                    i = 0
+                    island.append(linelist.pop(linelist.index(line)))
 
             elif line[2] == search:
-                search = line[1]
-                #print("Found it!")
-                i = 0
-                island.append(linelist.pop(linelist.index(line)))
+                if line[2] in overlaps:
+                    dot = sum(a*b for (a, b) in zip(line[0][:2], island[-1][0][:2]))
+
+                    print("Dot:", dot)
+
+                    if dot < 0:
+                        print("Not a good match, try again.")
+                        retry = True
+
+                if not retry:
+                    search = line[1]
+                    #print("Found it!")
+                    i = 0
+                    island.append(linelist.pop(linelist.index(line)))
 
             #print("Current island:", island)
 
