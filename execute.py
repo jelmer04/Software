@@ -51,8 +51,9 @@ def main():
         print("Slicing at", z)
         sliced = slice.layer(snapped[:], z)
 
-        g = plotter.graph("RAW", scale=plotterscale)
-        plotter.plot(g, sliced)
+        # Plot the raw data:
+        #g = plotter.graph("RAW", scale=plotterscale)
+        #plotter.plot(g, sliced)
 
         if len(sliced) == 0:
             z += Decimal("0.01")

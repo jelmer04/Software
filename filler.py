@@ -43,9 +43,10 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
 
     # Crop the mesh to the specified perimeter
     filllist = []
-    indices = [[]]
+    startindex = []
+    stopindex = []
     flip = False
-    for segment in mesh:
+    for seg, segment in enumerate(mesh):
         intersections = []
         segmentfill = []
         for i, line in enumerate(linelist):
@@ -66,19 +67,9 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
 
         # If the mesh segment has intersections with the perimeter:
         if len(intersections) > 0:
+
             # Sort the intersections into y-order
             intersections.sort(key=lambda x: x[1][1])
-
-            #print("Segment intersects at:", segment, tuple((str(i[1][1]), str(i[0][1])) for i in intersections))
-
-            '''
-            j = 1
-            while j < len(intersections):
-                if intersections[j][1][1] == intersections[j - 1][1][1]:
-                    intersections.pop(j)
-                else:
-                    j += 1
-            '''
 
             #print("Segment intersects at:", segment, tuple((str(i[1][1]), str(i[0][1])) for i in intersections))
 
@@ -89,7 +80,8 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
 
             # Find the lines which are inside the perimeter (normals are opposite sign)
             last = intersections.pop(0)
-
+            first = True
+            stopindex.append(None)
             while len(intersections) > 0:
                 intersection = intersections.pop(0)
                 #print(last[0][1], intersection[0][1])
@@ -100,7 +92,11 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
                     # Generate the infill line
                     line = [(), last[1], intersection[1]]
 
-                    indices[-1].append(intersection[2])
+                    if first:
+                        startindex.append(last[2])
+                        first = False
+
+                    stopindex[-1] = intersection[2]
 
                     # Short fill filter
                     if abs(line[1][1] - line[2][1]) > short:
@@ -116,32 +112,59 @@ def fill(linelist, spacing=0.5, angle=0, short=0.1):
                     # Join segments together
                     ###filllist[-1].append([(), filllist[-1][-1][2], segmentfill[0][1]])
 
-                    print(indices)
-
-                    if len(indices) > 1:
+                    if len(startindex) > 1:
                         # Calculate the points to join along
-                        join = [segmentfill[0][1]]
+                        join = []
+                        limits = (startindex[-1], stopindex[-2])
 
-                        start = indices[-1][0]
-                        stop = indices[-2][-1]
-                        print("Index:", start, stop)
+                        #start = min(limits)
+                        #stop = max(limits)
+                        if flip:
+                            start = limits[0]
+                            stop = limits[1]
+                        else:
+                            start = limits[1]
+                            stop = limits[0]
 
+                        #print("Join between:", start, stop)
 
-                        for s in searchlist:
-                            if (flip and s[2][0] < stop[0]):
+                        if start > stop:
+                            if False and start - stop < 50:
+                                for s in linelist[stop:start]:
+                                    join.append(s[2])
+                            else:
+                                for s in linelist[start:]:
+                                    pass
+                                    if mesh[seg-1] < s[2][0] < segment:
+                                        pass
+                                        join.append(s[2])
+
+                                for s in linelist[:stop]:
+                                    pass
+                                    if mesh[seg-1] < s[2][0] < segment:
+                                        pass
+                                        join.append(s[2])
+
+                        else:
+                            for s in linelist[start:stop]:
                                 join.append(s[2])
 
-                        join.append(stop)
-                        print("Join between:", join)
+                        if flip:
+                            join.reverse()
+
+                        join.insert(0, filllist[-1][-1][2])
+                        join.append(segmentfill[0][1])
+                        #print("Join between:", join)
 
                         if len(join) > 5:
                             pass
                             #join = [join[0], join[-1]]
 
                         # Do the joining
-                        join.reverse()
                         for j in range(len(join) - 1):
                             filllist[-1].append([(), join[j], join[j+1]])
+
+                            pass
 
                     if len(segmentfill) > 1:
                         filllist[-1].append(segmentfill.pop(0))

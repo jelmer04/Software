@@ -127,7 +127,7 @@ def load_ASCII(filename):
                         logging.warning("File is bad - expected outer loop")
                         return 1
 
-                elif line == "endsolid":
+                elif line.startswith("endsolid"):
                     # end of file - stop here
                     return facetlist
                 else:

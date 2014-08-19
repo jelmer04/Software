@@ -52,7 +52,7 @@ def chop(linelist):
 
     pointcounter = count_points(linelist)
 
-    print("Point Count:", pointcounter)
+    #print("Point Count:", pointcounter)
 
     # Find the triple-point coordinate
     extrapoints = []
