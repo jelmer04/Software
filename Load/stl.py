@@ -43,7 +43,7 @@ def type(filename):
         # Close the file, we're done with it now
         file.close()
         # Check if the file is formatted as expected
-        if firstline.startswith("solid") and lastline == "endsolid":
+        if firstline.startswith("solid") and lastline.startswith("endsolid"):
             # It's an ASCII file
             return 1
         else:
