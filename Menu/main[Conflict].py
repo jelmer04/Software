@@ -2,7 +2,6 @@ import platform
 from tkinter import *
 from tkinter import ttk
 
-
 if platform.system() == "Linux":
     testing = False
 else:
@@ -20,16 +19,9 @@ else:
 
 ttk.Button(root, text="Quit", command=quit).grid(row=0, column=0, sticky=(N, E, S, W))
 
-# Set the theme for TTK
 style = ttk.Style()
 style.theme_use("default")
-
-# Check some colours
-bg = style.lookup("TButton", "background")
-hv = "gray95"
-
-style.configure('.', font=('Helvetica', 12))
-#style.configure("TButton", background=bg)
+# style.configure("TButton", background="#00ffff")
 # style.configure("TFrame", background="#ff0000")
 # style.configure("TLabel", background="#00ff00")
 style.configure("Title.TLabel", font="Helvetica 24", padding="10 0 0 0")
@@ -131,44 +123,10 @@ class Menu(ttk.Frame):
     def create_move(self, title="Movment", commands=[]):
         self.title(title)
 
-        # Main Frame
-        mainframe = ttk.Frame(self, padding="0")
-        mainframe.grid(column=0, row=1, sticky=(N, W, E, S), padx=0, pady=0)
-
-        width = 316
-        height = 196
-        pad = 3
-        edge = 5
-
         # Canvas for the buttons
-        canvas = Canvas(mainframe, width=width, height=height, bd=0, relief=FLAT)
-        canvas.grid(column=0, row=0)
-
-        # Middle
-        up =   canvas.create_polygon(width*(1/6)+pad, edge,        width*(5/6)-pad, edge,        width/2, height/2-pad, fill=bg, outline="black", activefill=hv)
-        down = canvas.create_polygon(width*(1/6)+pad, height-edge, width*(5/6)-pad, height-edge, width/2, height/2+pad, fill=bg, outline="black", activefill=hv)
-
-        # Left Side
-        left = canvas.create_polygon(edge, edge,        width*(1/6)-pad, edge,        width/2-pad, height/2-pad/2, edge, height/2-pad/2, fill=bg, outline="black", activefill=hv)
-        back = canvas.create_polygon(edge, height-edge, width*(1/6)-pad, height-edge, width/2-pad, height/2+pad/2, edge, height/2+pad/2, fill=bg, outline="black", activefill=hv)
-
-        # Right Side
-        forward = canvas.create_polygon(width-edge, edge,        width*(5/6)+pad, edge,        width/2+pad, height/2-pad/2, width-edge, height/2-pad/2, fill=bg, outline="black", activefill=hv)
-        right =   canvas.create_polygon(width-edge, height-edge, width*(5/6)+pad, height-edge, width/2+pad, height/2+pad/2, width-edge, height/2+pad/2, fill=bg, outline="black", activefill=hv)
-
-        # Labels
-        font = "Helvetica 20"
-
-        canvas.create_text(width*4/5, height*2/3, text="+X", anchor=W, font=font)
-        canvas.create_text(width*1/5, height*1/3, text="-X", anchor=E, font=font)
-
-        canvas.create_text(width*4/5, height*1/3, text="+Y", anchor=W, font=font)
-        canvas.create_text(width*1/5, height*2/3, text="-Y", anchor=E, font=font)
-
-        canvas.create_text(width*1/2, height*1/4, text="+Z", anchor=S, font=font)
-        canvas.create_text(width*1/2, height*3/4, text="-Z", anchor=N, font=font)
-
-        #Canvas(mainframe, width=10, height=10).grid(column=0, row=1)
+        canvas = Canvas(self, width=310, height=190, borderwidth=0, background="gray85")
+        canvas.grid(column=0, row=1, sticky=(N, W, E, S))
+        #canvas.create_polygon(50,50, 270,50, 250, 150, 70, 150, fill="", outline="black", )
 
 
 movemenu = Menu(root, "move", "Move Axes", [])
