@@ -27,6 +27,7 @@ style.theme_use("default")
 # Check some colours
 bg = style.lookup("TButton", "background")
 hv = "gray95"
+pr = "white"
 
 style.configure('.', font=('Helvetica', 12))
 #style.configure("TButton", background=bg)
@@ -144,17 +145,23 @@ class Menu(ttk.Frame):
         canvas = Canvas(mainframe, width=width, height=height, bd=0, relief=FLAT)
         canvas.grid(column=0, row=0)
 
+        button = [0, 0, 0, 0, 0, 0]
+        tag = ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
+
         # Middle
-        up =   canvas.create_polygon(width*(1/6)+pad, edge,        width*(5/6)-pad, edge,        width/2, height/2-pad, fill=bg, outline="black", activefill=hv)
-        down = canvas.create_polygon(width*(1/6)+pad, height-edge, width*(5/6)-pad, height-edge, width/2, height/2+pad, fill=bg, outline="black", activefill=hv)
+        button[4] = canvas.create_polygon(width*(1/6)+pad, edge,        width*(5/6)-pad, edge,        width/2, height/2-pad)    # +Z
+        button[5] = canvas.create_polygon(width*(1/6)+pad, height-edge, width*(5/6)-pad, height-edge, width/2, height/2+pad)    # -Z
 
         # Left Side
-        left = canvas.create_polygon(edge, edge,        width*(1/6)-pad, edge,        width/2-pad, height/2-pad/2, edge, height/2-pad/2, fill=bg, outline="black", activefill=hv)
-        back = canvas.create_polygon(edge, height-edge, width*(1/6)-pad, height-edge, width/2-pad, height/2+pad/2, edge, height/2+pad/2, fill=bg, outline="black", activefill=hv)
+        button[1] = canvas.create_polygon(edge, edge,        width*(1/6)-pad, edge,        width/2-pad, height/2-pad/2, edge, height/2-pad/2)  # -X
+        button[3] = canvas.create_polygon(edge, height-edge, width*(1/6)-pad, height-edge, width/2-pad, height/2+pad/2, edge, height/2+pad/2)  # -Y
 
         # Right Side
-        forward = canvas.create_polygon(width-edge, edge,        width*(5/6)+pad, edge,        width/2+pad, height/2-pad/2, width-edge, height/2-pad/2, fill=bg, outline="black", activefill=hv)
-        right =   canvas.create_polygon(width-edge, height-edge, width*(5/6)+pad, height-edge, width/2+pad, height/2+pad/2, width-edge, height/2+pad/2, fill=bg, outline="black", activefill=hv)
+        button[2] = canvas.create_polygon(width-edge, edge,        width*(5/6)+pad, edge,        width/2+pad, height/2-pad/2, width-edge, height/2-pad/2)    # +Y
+        button[0] = canvas.create_polygon(width-edge, height-edge, width*(5/6)+pad, height-edge, width/2+pad, height/2+pad/2, width-edge, height/2+pad/2)    # +X
+
+        for i, b in enumerate(button):
+            canvas.itemconfig(b, fill=bg, outline="black", activefill=hv, tags=tag[i])
 
         # Labels
         font = "Helvetica 20"
@@ -168,10 +175,27 @@ class Menu(ttk.Frame):
         canvas.create_text(width*1/2, height*1/4, text="+Z", anchor=S, font=font)
         canvas.create_text(width*1/2, height*3/4, text="-Z", anchor=N, font=font)
 
+        # Pressed Effects
+        def press(item, name, command):
+            #print("Pressed", name)
+            canvas.itemconfig(item, activefill=pr)
+            command()
+
+
+        def unpress(item, name, command):
+            #print("Unpressed", name)
+            canvas.itemconfig(item, activefill=hv)
+
+        # Functionality
+        for t, b, c in zip(tag, button, commands):
+            print(t, b)
+            canvas.tag_bind(t, "<ButtonPress-1>", lambda event, item=b, name=t, command=c: press(item, name, command))
+            canvas.tag_bind(t, "<ButtonRelease-1>", lambda event, item=b, name=t, command=c: unpress(item, name, command))
+
         #Canvas(mainframe, width=10, height=10).grid(column=0, row=1)
 
 
-movemenu = Menu(root, "move", "Move Axes", [])
+movemenu = Menu(root, "move", "Move Axes", [lambda:print("0"), lambda:print("1"), lambda:print("2"), lambda:print("3"), lambda:print("4"), lambda:print("5")])
 
 printmenu = Menu(root, None, "Print", ["From USB", "From Network", "Test Part"])
 manualmenu = Menu(root, None, "Manual Control", ["Home", "Move Axes", "Extruders", "Temperatures"], [None, movemenu.lift, None, None])
