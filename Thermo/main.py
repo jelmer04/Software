@@ -34,7 +34,7 @@ pidcontroller = PID.Controller(kp=kp, ki=ki, kd=kd, sampletime=sampletime, setpo
 while True:
     temperature = thermocouple.get()
 
-    output = pidcontroller.compute(pidcontroller, temperature)
+    output = pidcontroller.compute(temperature)
 
     heater.ChangeDutyCycle(output)
 
