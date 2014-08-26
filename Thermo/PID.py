@@ -15,7 +15,7 @@ class Controller:
     output = 0
     auto = True
 
-    def _init_(self, kp=0, ki=0, kd=0, sampletime=1, setpoint=50, min=0, max=100, auto=True):
+    def __init__(self, kp=0, ki=0, kd=0, sampletime=1, setpoint=50, min=0, max=100, auto=True):
         self.tune(kp, ki, kd)
         self.set_limits(max, min)
         self.set_sample_time(sampletime)
