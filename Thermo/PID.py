@@ -8,14 +8,14 @@ class Controller:
     lasttime = 0
     setpoint = 50
     lastinput = 0
-    sampletime = 1
+    sampletime = 0.1
     integral = 0
     outputmax = 1
     outputmin = 0
     output = 0
     auto = True
 
-    def __init__(self, kp=0, ki=0, kd=0, sampletime=1, setpoint=50, min=0, max=100, auto=True):
+    def __init__(self, kp=0, ki=0, kd=0, sampletime=0.1, setpoint=50, min=0, max=100, auto=True):
         self.tune(kp, ki, kd)
         self.set_limits(max, min)
         self.set_sample_time(sampletime)
