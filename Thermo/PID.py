@@ -1,6 +1,7 @@
 import time
 
-class PID:
+class Controller:
+
     kp = 0
     ki = 0
     kd = 0
@@ -13,6 +14,12 @@ class PID:
     outputmin = 0
     output = 0
     auto = True
+
+    def _init_(self, kp=0, ki=0, kd=0, sampletime=1, setpoint=50, min=0, max=100, auto=True):
+        self.tune(kp, ki, kd)
+        self.set_limits(max, min)
+        self.set_sample_time(sampletime)
+
 
     def compute(self, inputvalue):
         if not self.auto:
