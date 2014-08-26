@@ -13,12 +13,14 @@ class Controller:
     outputmax = 1
     outputmin = 0
     output = 0
-    auto = True
+    auto = False
 
     def __init__(self, kp=0, ki=0, kd=0, sampletime=0.1, setpoint=50, min=0, max=100, auto=True):
         self.tune(kp, ki, kd)
         self.set_limits(max, min)
         self.set_sample_time(sampletime)
+        self.setpoint = setpoint
+        self.run(auto)
 
 
     def compute(self, inputvalue):
