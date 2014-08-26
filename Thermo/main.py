@@ -6,6 +6,8 @@ from time import sleep
 # Heater
 out_pin = 17
 freq = 1000
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(out_pin, GPIO.OUT)
 heater = GPIO.PWM(out_pin, freq)
 heater.start(0)
 
@@ -24,14 +26,14 @@ kd = 0
 sampletime = 0.1
 
 pidcontroller = PID
-pidcontroller.tune(kp, ki, kd)
-pidcontroller.set_sample_time(sampletime)
-pidcontroller.set_limits(100)
+pidcontroller.tune(pidcontroller, kp, ki, kd)
+pidcontroller.set_sample_time(pidcontroller, sampletime)
+pidcontroller.set_limits(pidcontroller, 100, 0)
 
 while True:
     temperature = thermocouple.get()
 
-    output = pidcontroller.compute(temperature)
+    output = pidcontroller.compute(pidcontroller, temperature)
 
     heater.ChangeDutyCycle(output)
 
