@@ -31,6 +31,7 @@ class Controller:
         # How long since calculation
         now = time.clock()
         deltatime = now - self.lasttime
+        print("dt:", deltatime)
 
         if deltatime >= self.sampletime:
             # Calculate error values
