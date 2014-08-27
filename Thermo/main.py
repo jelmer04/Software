@@ -24,12 +24,9 @@ kp = 5
 ki = 1
 kd = 0
 sampletime = 0.1
-setpoint = 35
+setpoint = float(input("Enter set point: "))
 
 pidcontroller = PID.Controller(kp=kp, ki=ki, kd=kd, sampletime=sampletime, setpoint=setpoint, min=0, max=100)
-#pidcontroller.tune(pidcontroller, kp, ki, kd)
-#pidcontroller.set_sample_time(pidcontroller, sampletime)
-#pidcontroller.set_limits(pidcontroller, 100, 0)
 
 while True:
     temperature = thermocouple.get()
@@ -38,6 +35,6 @@ while True:
 
     heater.ChangeDutyCycle(output)
 
-    print("Temperature:\t", temperature, "\tOutput:", output)
+    print("Temp:\t{.2f}\t\tOutput:\t{.2f}%".format(temperature, output))
 
     sleep(sampletime)
