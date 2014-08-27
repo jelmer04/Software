@@ -35,6 +35,6 @@ while True:
 
     heater.ChangeDutyCycle(output)
 
-    print("Temp:\t{:.2f}\t\tOutput:\t{:.2f}%".format(temperature, output))
+    print("{}\tTemp:\t{:.2f}\t\tOutput:\t{:.2f}%".format(pidcontroller.counter, temperature, output))
 
     sleep(sampletime)
