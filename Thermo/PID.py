@@ -29,7 +29,7 @@ class Controller:
             return
 
         # How long since calculation
-        now = time.clock()
+        now = time.time()
         deltatime = now - self.lasttime
         print("dt:", deltatime)
 
