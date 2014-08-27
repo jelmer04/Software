@@ -12,9 +12,9 @@ heater = GPIO.PWM(out_pin, freq)
 heater.start(0)
 
 # Thermocouple
-cs_pin = 2
+cs_pin = 4
 clk_pin = 3
-data_pin = 4
+data_pin = 2
 unit = "c"
 
 thermocouple = MAX31855(cs_pin, clk_pin, data_pin, unit)
