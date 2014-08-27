@@ -23,7 +23,7 @@ thermocouple = MAX31855(cs_pin, clk_pin, data_pin, unit)
 kp = 5
 ki = 0
 kd = 0
-sampletime = 0.1
+sampletime = 0.5
 setpoint = float(input("Enter set point: "))
 
 pidcontroller = PID.Controller(kp=kp, ki=ki, kd=kd, sampletime=sampletime, setpoint=setpoint, min=0, max=100)
@@ -37,4 +37,4 @@ while True:
 
     print("{}\tTemp:\t{:.2f}\t\tOutput:\t{:.2f}%".format(pidcontroller.counter, temperature, output))
 
-    sleep(sampletime)
+    sleep(sampletime/2)
