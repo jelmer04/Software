@@ -20,11 +20,11 @@ unit = "c"
 thermocouple = MAX31855(cs_pin, clk_pin, data_pin, unit)
 
 # PID
-kp = 1
-ki = 0
+kp = 5
+ki = 1
 kd = 0
 sampletime = 0.1
-setpoint = 50
+setpoint = 35
 
 pidcontroller = PID.Controller(kp=kp, ki=ki, kd=kd, sampletime=sampletime, setpoint=setpoint, min=0, max=100)
 #pidcontroller.tune(pidcontroller, kp, ki, kd)
