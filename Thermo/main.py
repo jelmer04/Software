@@ -21,7 +21,7 @@ thermocouple = MAX31855(cs_pin, clk_pin, data_pin, unit)
 
 # PID
 kp = 5
-ki = 1
+ki = 0
 kd = 0
 sampletime = 0.1
 setpoint = float(input("Enter set point: "))
