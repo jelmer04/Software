@@ -155,9 +155,7 @@ def load_binary(filename):
     with open(filename, "br") as file:
         # List of points which make up each facet
         facetlist = []
-        # Read the 80 byte ASCII header
-        #header = struct.unpack("80s", file.read(80))[0].decode("utf-8").rstrip()
-        #logging.debug("File Header: %s", header)
+        # Skip the header
         file.seek(80)
         # Number of facets to find
         facetCount = struct.unpack("<I", file.read(4))[0]
