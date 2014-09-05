@@ -3,100 +3,120 @@ from shapely import geometry
 
 
 def polygon(linelist):
+    """
+    Convert a line list into a Shapely polygon
+
+    :param linelist:
+    :return:
+    """
+
+    # Start the list of points
     pointlist = [linelist[0][1]]
+    # Append each end point to the list
     for line in linelist:
         pointlist.append(line[2])
 
+    # Convert points list into polygon
     return geometry.Polygon(pointlist)
-
-    # Do something with linestrings....
-    linestr = geometry.LineString(pointlist)
-    print(linestr)
-
-    result = linestr.union(geometry.Point(pointlist[0]))
-
-    if result.geom_type == "LineString":
-        return geometry.Polygon(pointlist)
-
-    poly = []
-    for r in result:
-        print(r.geom_type)
-        poly.append(geometry.Polygon(r.coords))
-
-    return geometry.MultiPolygon(poly)
-
-
-def separate(linelist):
-    poly = polygon(linelist)
-    #poly = poly.buffer(0)
-
-    #print(poly.geom_type, poly.length, poly.area)
-
-    islands = []
-
-    if poly.geom_type == "MultiPolygon":
-        for p in poly:
-            islands.append(lineexterior(p))
-
-        return islands
-    else:
-        return False
+# End of function polygon()
 
 
 def merge(a, b):
+    """
+    Merges polygons a and b using symmetric difference
+
+    :param a:   polygon to merge
+    :param b:   polygon to merge
+    :return:    merged polygon
+    """
     return a.symmetric_difference(b)
+# End of function merge()
 
 
 def linepoly(poly):
-    #print(poly.geom_type)
+    """
+    Converts a polygon to a list of lines
+
+    :param poly:    polygon to convert
+    :return:        list of lines
+    """
+
+    # If the polygon consists of multiple islands
     linelist = []
     if poly.geom_type == "MultiPolygon":
         for p in poly:
+            # Extract the coordinates from each island and append them
             linelist.extend(lineinterior(p))
         return linelist
+    # If theres only one island
     else:
+        # Extract the coordinates
         return lineinterior(poly)
+# End of function linepoly()
 
 
 def lineexterior(poly):
+    """
+    Extract the exterior coordinates
+
+    :param poly:    polygon to extract from
+    :return:        list of coordinates
+    """
+
+    # If the polygon is a ring, convert it to a polygon
     if poly.geom_type == "LinearRing":
         poly = geometry.Polygon(poly)
 
-    if poly.is_empty:
-        return [[(0,0,0), (0,0), (0,0)]]
-
+    # Extract the polygon exterior coordinates
     coords = list(poly.exterior.coords)
+    # Generate a list of lines
     linelist = []
-    #print(coords)
     for i, p in enumerate(coords[:-1]):
+        # Start point
         p = tuple(Decimal(x) for x in p)
+        # End point
         q = tuple(Decimal(x) for x in coords[i + 1])
+        # Calculate the magnitude of the start point (for unit vector calculation)
         mag = magnitude(p)
-        #print(mag)
         if mag == 0:
             mag = 1
-        n = tuple(Decimal(a - b)/mag for a, b in zip(p, q))
+        # Calculate the normals
+        n = tuple(Decimal(a - b) / mag for a, b in zip(p, q))
         n = [n[1], -n[0]]
-
+        # Append the new line
         linelist.append([n, p, q])
-
     return linelist
+# End of function lineexterior()
 
 
 def lineinterior(poly):
+    """
+    Extract the interior and exterior points from a polygon
+
+    :param poly:    polygon to extract coordinates from
+    :return:        list
+    """
+
+    # Extract the exterior
     linelist = lineexterior(poly)
     for p in poly.interiors:
         linelist.extend(lineexterior(p))
     return linelist
+# End of function lineinterior()
 
 
 def normals(linelist):
-    # Needs tuning for specific applications??
+    """
+    Calculate normals for a list of lines
+
+    :param linelist:    list of lines
+    :return:            list of liens with newly calculated normals
+    """
     for i, (n, *points) in enumerate(linelist):
         x = points[0][0] > points[1][0]
         y = points[0][1] > points[1][1]
 
-        #print(i, x, y)
+        # print(i, x, y)
 
         if not x and not y:
             n = [n[0], -n[1]]
@@ -113,7 +133,6 @@ def normals(linelist):
         #print(n)
         linelist[i][0] = tuple(n)
 
-
     return linelist
 
 
@@ -127,12 +146,13 @@ def offset(linelist, distance):
 
     poly = poly.buffer(-distance)
 
-    #if poly.geom_type == "MultiPolygon":
+    # if poly.geom_type == "MultiPolygon":
     #    poly = poly[0]
 
     return (poly)
 
-#    for i, (n, a, b) in enumerate(linelist):
+
+# for i, (n, a, b) in enumerate(linelist):
 #        mag = magnitude(n[:2])
 #        if mag != 1:
 #            n = tuple(z / mag for z in n)
@@ -165,11 +185,12 @@ def trim(linelist):
 
     while i < len(linelist):
         line = linelist[i]
-        last = linelist[i-1]
+        last = linelist[i - 1]
         #print("Trimming", line[1:], last[1:])
 
         #print("Intersect:", line[1], sub(line[2], line[1]), last[1], sub(last[2], last[1]))
-        intersection = intersect(line[1], sub(line[2], line[1]), last[2], sub(last[1], last[2]), "abs " + str(firstpass))
+        intersection = intersect(line[1], sub(line[2], line[1]), last[2], sub(last[1], last[2]),
+                                 "abs " + str(firstpass))
 
         #intersection = tuple(Decimal((a+b)/2) for (a, b) in zip(line[1], last[2]))
 
@@ -177,11 +198,11 @@ def trim(linelist):
 
         if intersection:
             linelist[i][1] = intersection
-            linelist[i-1][2] = intersection
-            intersections.append([i-1, i])
+            linelist[i - 1][2] = intersection
+            intersections.append([i - 1, i])
         else:
             #print("Lines don't intersect:", line[1:], last[1:])
-            nonintersections.append([i-1, i])
+            nonintersections.append([i - 1, i])
         i += 1
 
 
@@ -189,7 +210,7 @@ def trim(linelist):
     i = 0
     while i < len(intersections):
         pair = intersections[i]
-        last = intersections[i-1]
+        last = intersections[i - 1]
 
         if pair[0] == last[-1]:
             last.append(pair[1])
@@ -215,10 +236,11 @@ def trim(linelist):
         for j in range(pair[-1] + 1, len(linelist)):
 
             if j >= len(linelist):
-                j -= (len(linelist)+1)
+                j -= (len(linelist) + 1)
 
             line = linelist[j]
-            intersection = intersect(line[1], sub(line[2], line[1]), search[2], sub(search[1], search[2]), "abs " + str(searchpass))
+            intersection = intersect(line[1], sub(line[2], line[1]), search[2], sub(search[1], search[2]),
+                                     "abs " + str(searchpass))
             #print(j, intersection)
             if intersection:
                 print("Fixing", pair, intersection)
@@ -238,10 +260,11 @@ def trim(linelist):
             for j in range(0, pair[0]):
 
                 if j >= len(linelist):
-                    j -= (len(linelist)+1)
+                    j -= (len(linelist) + 1)
 
                 line = linelist[j]
-                intersection = intersect(line[1], sub(line[2], line[1]), search[2], sub(search[1], search[2]), "abs " + str(searchpass))
+                intersection = intersect(line[1], sub(line[2], line[1]), search[2], sub(search[1], search[2]),
+                                         "abs " + str(searchpass))
                 #print(j, intersection)
                 if intersection:
                     print("Fixing", pair, intersection)
@@ -254,7 +277,6 @@ def trim(linelist):
 
         if not fixed:
             print("Couldn't fix", pair)
-
 
     removals = list(set(removals))
     removals.sort()
@@ -280,14 +302,14 @@ def uncross(linelistin):
     intersections = []
 
     for i, line in enumerate(linelist):
-        j = i+1
+        j = i + 1
         while j < len(linelist):
             search = linelist[j]
-            if\
-                          line[1][0] < search[1][0] <   line[2][0] or\
-                          line[1][0] < search[2][0] <   line[2][0] or\
-                        search[1][0] <   line[1][0] < search[2][0] or\
-                        search[1][0] <   line[2][0] < search[2][0]:
+            if \
+                                                            line[1][0] < search[1][0] < line[2][0] or \
+                                                            line[1][0] < search[2][0] < line[2][0] or \
+                                                    search[1][0] < line[1][0] < search[2][0] or \
+                                            search[1][0] < line[2][0] < search[2][0]:
 
                 #print(i, j, "Overlapping X:", line[1][0], line[2][0], search[1][0], search[2][0])
 
@@ -299,11 +321,11 @@ def uncross(linelistin):
                 if searchy[1][1] > search[2][1]:
                     search = (search[0], search[2], search[1])
 
-                if\
-                          liney[1][1] < searchy[1][1] <   liney[2][1] or\
-                          liney[1][1] < searchy[2][1] <   liney[2][1] or\
-                        searchy[1][1] <   liney[1][1] < searchy[2][1] or\
-                        searchy[1][1] <   liney[2][1] < searchy[2][1]:
+                if \
+                                                                liney[1][1] < searchy[1][1] < liney[2][1] or \
+                                                                liney[1][1] < searchy[2][1] < liney[2][1] or \
+                                                        searchy[1][1] < liney[1][1] < searchy[2][1] or \
+                                                searchy[1][1] < liney[2][1] < searchy[2][1]:
                     #print(i, j, "Overlapping Y:", line[1][1], line[2][1], search[1][1], search[2][1])
 
                     #print("Overlapping!!", line[1:], search[1:])
@@ -324,8 +346,7 @@ def xorder(linelist):
     return linelist
 
 
-
-def intersect(posa, dira, posb, dirb, mode = "extend"):
+def intersect(posa, dira, posb, dirb, mode="extend"):
     """
     Finds the intersection point of two vectors:
 
@@ -341,7 +362,7 @@ def intersect(posa, dira, posb, dirb, mode = "extend"):
     :param mode:
     :return:
     """
-    if dira[1] == 0 and dirb[1] == 0 and posa != posb\
+    if dira[1] == 0 and dirb[1] == 0 and posa != posb \
             or ((dira[1] != 0 and dirb[1] != 0) and (dira[0] / dira[1] == dirb[0] / dirb[1])):
         return False
 
@@ -385,18 +406,16 @@ def intersect(posa, dira, posb, dirb, mode = "extend"):
 
     #print("Limit =", limit)
 
-    if mode == "extend" or\
-            (mode == "abs" and\
-                     (-limit1 <= k1 <= Decimal(1 + limit1) and -limit2 <= k2 <= Decimal(1 + limit2))) or\
-            ((mode == "shorten" or mode == "limit") and\
+    if mode == "extend" or \
+            (mode == "abs" and \
+                     (-limit1 <= k1 <= Decimal(1 + limit1) and -limit2 <= k2 <= Decimal(1 + limit2))) or \
+            ((mode == "shorten" or mode == "limit") and \
                      (-limit <= k1 <= Decimal(1 + limit) and -limit <= k2 <= Decimal(1 + limit))):
         point = tuple(k1 * a for a in dira)
         point = tuple(p + a for (p, a) in zip(point, posa))
         return point
     else:
         return False
-
-
 
 
 def magnitude(vector):
@@ -406,6 +425,6 @@ def magnitude(vector):
     @param vector:  vector points
     @return:        scalar magnitude
     """
-    squares = (Decimal(v**2) for v in vector)
+    squares = (Decimal(v ** 2) for v in vector)
     mag = Decimal(str(round(sum(squares).sqrt(), 2)))
     return mag
